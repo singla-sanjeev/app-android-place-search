@@ -14,7 +14,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.homeaway.placesearch.R;
-import com.homeaway.placesearch.ui.dummy.DummyContent;
 
 /**
  * A fragment representing a single Venue detail screen.
@@ -28,11 +27,6 @@ public class VenueDetailFragment extends Fragment {
      * represents.
      */
     public static final String ARG_ITEM_ID = "item_id";
-
-    /**
-     * The dummy content this fragment is presenting.
-     */
-    private DummyContent.DummyItem mItem;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -49,12 +43,11 @@ public class VenueDetailFragment extends Fragment {
             // Load the dummy content specified by the fragment
             // arguments. In a real-world scenario, use a Loader
             // to load content from a content provider.
-            mItem = DummyContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
 
             Activity activity = this.getActivity();
             CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
             if (appBarLayout != null) {
-                appBarLayout.setTitle(mItem.content);
+                appBarLayout.setTitle(null);
             }
         }
     }
@@ -64,10 +57,10 @@ public class VenueDetailFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.venue_detail, container, false);
 
-        // Show the dummy content as text in a TextView.
-        if (mItem != null) {
-            ((TextView) rootView.findViewById(R.id.venue_detail)).setText(mItem.details);
-        }
+//        // Show the dummy content as text in a TextView.
+//        if (mItem != null) {
+//            ((TextView) rootView.findViewById(R.id.venue_detail)).setText(mItem.details);
+//        }
 
         return rootView;
     }

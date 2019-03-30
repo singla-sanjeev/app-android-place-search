@@ -22,12 +22,12 @@ import android.widget.TextView;
 
 import com.homeaway.placesearch.R;
 
-import com.homeaway.placesearch.model.VenueSearchRequest;
+import com.homeaway.placesearch.model.Venue;
 import com.homeaway.placesearch.model.VenueSearchResponse;
-import com.homeaway.placesearch.ui.dummy.DummyContent;
 import com.homeaway.placesearch.utils.LogUtils;
 import com.homeaway.placesearch.utils.RetrofitUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -40,16 +40,14 @@ import java.util.List;
  */
 public class VenueSearchActivity extends AppCompatActivity {
     private static final String TAG = LogUtils.makeLogTag(VenueSearchActivity.class);
-    /**
-     * Whether or not the activity is in two-pane mode, i.e. running on a tablet
-     * device.
-     */
-    private boolean mTwoPane;
+    private List<Venue> mVenueList = new ArrayList<>();
+    private SimpleItemRecyclerViewAdapter mSimpleItemRecyclerViewAdapter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_venue_list);
+        setContentView(R.layout.activity_venue_search);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -69,52 +67,40 @@ public class VenueSearchActivity extends AppCompatActivity {
             // large-screen layouts (res/values-w900dp).
             // If this view is present, then the
             // activity should be in two-pane mode.
-            mTwoPane = true;
         }
-        fetchVenueList();
+        fetchVenueList("Coffee");
         View recyclerView = findViewById(R.id.venue_list);
         assert recyclerView != null;
         setupRecyclerView((RecyclerView) recyclerView);
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(this, DummyContent.ITEMS, mTwoPane));
+        mSimpleItemRecyclerViewAdapter = new SimpleItemRecyclerViewAdapter(this, mVenueList);
+        recyclerView.setAdapter(mSimpleItemRecyclerViewAdapter);
     }
 
     public static class SimpleItemRecyclerViewAdapter
             extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
 
         private final VenueSearchActivity mParentActivity;
-        private final List<DummyContent.DummyItem> mValues;
-        private final boolean mTwoPane;
+        private final List<Venue> mValues;
         private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                DummyContent.DummyItem item = (DummyContent.DummyItem) view.getTag();
-                if (mTwoPane) {
-                    Bundle arguments = new Bundle();
-                    arguments.putString(VenueDetailFragment.ARG_ITEM_ID, item.id);
-                    VenueDetailFragment fragment = new VenueDetailFragment();
-                    fragment.setArguments(arguments);
-                    mParentActivity.getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.venue_detail_container, fragment)
-                            .commit();
-                } else {
+                Venue venue = (Venue) view.getTag();
+
                     Context context = view.getContext();
                     Intent intent = new Intent(context, VenueDetailActivity.class);
-                    intent.putExtra(VenueDetailFragment.ARG_ITEM_ID, item.id);
-
+                    intent.putExtra(VenueDetailFragment.ARG_ITEM_ID, venue.getId());
                     context.startActivity(intent);
-                }
+
             }
         };
 
         SimpleItemRecyclerViewAdapter(VenueSearchActivity parent,
-                                      List<DummyContent.DummyItem> items,
-                                      boolean twoPane) {
+                                      List<Venue> items) {
             mValues = items;
             mParentActivity = parent;
-            mTwoPane = twoPane;
         }
 
         @Override
@@ -126,8 +112,9 @@ public class VenueSearchActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(final ViewHolder holder, int position) {
-            holder.mIdView.setText(mValues.get(position).id);
-            holder.mContentView.setText(mValues.get(position).content);
+            holder.mName.setText(mValues.get(position).getName());
+
+            holder.mCategory.setText(mValues.get(position).getCategories().get(0).getName());
 
             holder.itemView.setTag(mValues.get(position));
             holder.itemView.setOnClickListener(mOnClickListener);
@@ -139,22 +126,27 @@ public class VenueSearchActivity extends AppCompatActivity {
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            final TextView mIdView;
-            final TextView mContentView;
+            final TextView mName;
+            final TextView mCategory;
 
             ViewHolder(View view) {
                 super(view);
-                mIdView = (TextView) view.findViewById(R.id.id_text);
-                mContentView = (TextView) view.findViewById(R.id.content);
+                mName = (TextView) view.findViewById(R.id.id_name);
+                mCategory = (TextView) view.findViewById(R.id.id_category);
             }
         }
     }
 
-    private void fetchVenueList() {
+    private void fetchVenueList(String query) {
         Callback<VenueSearchResponse> responseCallback = new Callback<VenueSearchResponse>() {
             @Override
             public void onResponse(Call<VenueSearchResponse> call, Response<VenueSearchResponse> response) {
                 if (response != null && response.isSuccessful()) {
+                    VenueSearchResponse venueSearchResponse = response.body();
+                    if(venueSearchResponse != null && venueSearchResponse.getMeta() != null && venueSearchResponse.getMeta().getCode() == 200) {
+                        mVenueList.addAll(venueSearchResponse.getResponse().getVenues());
+                        mSimpleItemRecyclerViewAdapter.notifyDataSetChanged();
+                    }
                     LogUtils.checkIf(TAG, response.toString());
                 }
             }
@@ -164,14 +156,6 @@ public class VenueSearchActivity extends AppCompatActivity {
                 LogUtils.checkIf(TAG, "Throwable: " + throwable.toString());
             }
         };
-
-        VenueSearchRequest venueSearchRequest = new VenueSearchRequest();
-        venueSearchRequest.setClientId(getString(R.string.client_id));
-        venueSearchRequest.setClientSecret(getString(R.string.client_secret));
-        venueSearchRequest.setLimit(20);
-        venueSearchRequest.setNear("Seattle, WA");
-        venueSearchRequest.setQuery("coffee");
-        venueSearchRequest.setV(20190330);
-        RetrofitUtils.getInstance().getService(this).venueSearch(venueSearchRequest).enqueue(responseCallback);
+        RetrofitUtils.getInstance().getService(this).venueSearch(getString(R.string.client_id), getString(R.string.client_secret), getString(R.string.near), query, "20190330", 20).enqueue(responseCallback);
     }
 }

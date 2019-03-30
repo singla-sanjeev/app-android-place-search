@@ -1,22 +1,21 @@
 package com.homeaway.placesearch;
 
-import com.homeaway.placesearch.model.VenueSearchRequest;
 import com.homeaway.placesearch.model.VenueSearchResponse;
 
 import retrofit2.Call;
-import retrofit2.http.Body;
-import retrofit2.http.POST;
+import retrofit2.http.GET;
+import retrofit2.http.Query;
 
 public interface APIInterface {
 
 
     /**
-     * API to register device info such as Android id, model, latitude, longitude etc.
+     * API to fetch venue using FourSquare APIs
      *
-     * @param venueSearchRequest deviceInfoRequest object having Android id,
-     *                          platform, model, resolution etc.
+     *
+     *
      */
-    @POST("venues/search")
-    Call<VenueSearchResponse> venueSearch(@Body VenueSearchRequest venueSearchRequest);
+    @GET("venues/search")
+    Call<VenueSearchResponse> venueSearch(@Query("client_id") String clientId, @Query("client_secret") String clientSecret, @Query("near") String near, @Query("query") String query, @Query("v") String version, @Query("limit") int limit);
 
 }
