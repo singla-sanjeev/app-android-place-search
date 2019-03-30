@@ -4,4 +4,6 @@
     <string name="client_id">J4ZEAZE2EBKD25N3XMYJYPHHZJOIICDD5MTEN0JOMYLTRNRD</string>
     <string name="client_secret">ONN0QNYB5GKVBHMOBINOO330FB2ICQFECAV3LCVM2VYBF4AW</string>
     <string name="near">Seattle, WA</string>
+    <string name="centre_of_seattle_latitude">47.60621</string>
+    <string name="centre_of_seattle_longitude">-122.33207</string>
 </resources>

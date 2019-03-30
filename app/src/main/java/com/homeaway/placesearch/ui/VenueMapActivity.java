@@ -51,10 +51,10 @@ public class VenueMapActivity extends FragmentActivity implements OnMapReadyCall
         for (Venue venue : mVenueList) {
             latLng = new LatLng(venue.getLocation().getLat(), venue.getLocation().getLng());
             markerOptions = new MarkerOptions().position(latLng);
-            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.baseline_room_black_48));
+            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_pin));
             mMap.addMarker(markerOptions);
         }
-        latLng = new LatLng(47.60621, -122.33207);
+        latLng = new LatLng(Float.valueOf(getString(R.string.centre_of_seattle_latitude)), Float.valueOf(getString(R.string.centre_of_seattle_longitude)));
         CameraPosition cameraPosition = new CameraPosition.Builder().target(latLng)
                 .zoom(MAP_ZOOM_LEVEL).bearing(0).tilt(0).build();
         if (mMap != null) {
