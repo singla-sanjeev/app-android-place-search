@@ -1,38 +1,96 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal">
 
+    <View
+        android:id="@+id/vwVerticalDivider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="#000000"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/txtVwName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:ellipsize="end"
+        android:lines="1"
+        android:text="@string/app_name"
+        android:textColor="#000000"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/iconFav"
+        app:layout_constraintTop_toBottomOf="@id/vwVerticalDivider" />
+
     <ImageView
-        android:id="@+id/id_icon"
+        android:id="@+id/iconFav"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/text_margin"/>
-    <TextView
-        android:id="@+id/id_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/text_margin"
-        android:textAppearance="?attr/textAppearanceListItem" />
-
-    <TextView
-        android:id="@+id/id_category"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/text_margin"
-        android:textAppearance="?attr/textAppearanceListItem" />
-
-    <TextView
-        android:id="@+id/id_distance"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/text_margin"
-        android:textAppearance="?attr/textAppearanceListItem" />
+        android:layout_marginTop="3dp"
+        android:layout_marginEnd="16dp"
+        android:contentDescription="@string/app_name"
+        android:scaleType="fitXY"
+        android:src="@drawable/ic_favorite_border"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/txtVwName" />
 
     <ImageView
-        android:id="@+id/id_favorite"
+        android:id="@+id/iconCat"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/text_margin"/>
-</LinearLayout>
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="10dp"
+        android:contentDescription="@string/app_name"
+        android:scaleType="fitXY"
+        android:src="@drawable/ic_category_placeholder"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/txtVwName" />
+
+    <TextView
+        android:id="@+id/txtVwCategory"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:ellipsize="end"
+        android:lines="1"
+        android:text="@string/category"
+        android:textColor="#737373"
+        android:textSize="12sp"
+        app:layout_constraintLeft_toRightOf="@id/iconCat"
+        app:layout_constraintRight_toLeftOf="@id/txtVwDistance"
+        app:layout_constraintTop_toBottomOf="@id/txtVwName" />
+
+    <TextView
+        android:id="@+id/txtVwDistance"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="16dp"
+        android:ellipsize="end"
+        android:gravity="end"
+        android:lines="1"
+        android:text="@string/distance"
+        android:textColor="#737373"
+        android:textSize="12sp"
+        app:layout_constraintLeft_toRightOf="@id/txtVwCategory"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/txtVwName" />
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="16dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/txtVwCategory" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
