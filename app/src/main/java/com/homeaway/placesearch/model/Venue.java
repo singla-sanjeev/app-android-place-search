@@ -1,11 +1,15 @@
 
 package com.homeaway.placesearch.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import java.util.ArrayList;
 import java.util.List;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class Venue {
+public class Venue implements Parcelable {
 
     @SerializedName("id")
     @Expose
@@ -85,4 +89,45 @@ public class Venue {
         this.venuePage = venuePage;
     }
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.id);
+        dest.writeString(this.name);
+        dest.writeParcelable(this.location, flags);
+        dest.writeList(this.categories);
+        dest.writeString(this.referralId);
+        dest.writeByte(this.hasPerk ? (byte) 1 : (byte) 0);
+        dest.writeParcelable(this.venuePage, flags);
+    }
+
+    public Venue() {
+    }
+
+    protected Venue(Parcel in) {
+        this.id = in.readString();
+        this.name = in.readString();
+        this.location = in.readParcelable(Location.class.getClassLoader());
+        this.categories = new ArrayList<Category>();
+        in.readList(this.categories, Category.class.getClassLoader());
+        this.referralId = in.readString();
+        this.hasPerk = in.readByte() != 0;
+        this.venuePage = in.readParcelable(VenuePage.class.getClassLoader());
+    }
+
+    public static final Parcelable.Creator<Venue> CREATOR = new Parcelable.Creator<Venue>() {
+        @Override
+        public Venue createFromParcel(Parcel source) {
+            return new Venue(source);
+        }
+
+        @Override
+        public Venue[] newArray(int size) {
+            return new Venue[size];
+        }
+    };
 }

@@ -13,8 +13,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 
+import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,7 +40,7 @@ import java.util.List;
  */
 public class VenueSearchActivity extends AppCompatActivity {
     private static final String TAG = LogUtils.makeLogTag(VenueSearchActivity.class);
-    private List<Venue> mVenueList = new ArrayList<>();
+    private ArrayList<Venue> mVenueList = new ArrayList<>();
     private SimpleItemRecyclerViewAdapter mSimpleItemRecyclerViewAdapter;
 
 
@@ -57,8 +57,7 @@ public class VenueSearchActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                launchVenueMapActivity();
             }
         });
 
@@ -72,6 +71,12 @@ public class VenueSearchActivity extends AppCompatActivity {
         View recyclerView = findViewById(R.id.venue_list);
         assert recyclerView != null;
         setupRecyclerView((RecyclerView) recyclerView);
+    }
+
+    private void launchVenueMapActivity() {
+        Intent intent = new Intent(this, VenueMapActivity.class);
+        intent.putParcelableArrayListExtra(VenueMapActivity.VENUE_LIST_BUNDLE_ID, mVenueList);
+        startActivity(intent);
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {

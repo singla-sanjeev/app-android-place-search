@@ -1,10 +1,13 @@
 
 package com.homeaway.placesearch.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class Icon {
+public class Icon implements Parcelable {
 
     @SerializedName("prefix")
     @Expose
@@ -29,4 +32,34 @@ public class Icon {
         this.suffix = suffix;
     }
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.prefix);
+        dest.writeString(this.suffix);
+    }
+
+    public Icon() {
+    }
+
+    protected Icon(Parcel in) {
+        this.prefix = in.readString();
+        this.suffix = in.readString();
+    }
+
+    public static final Parcelable.Creator<Icon> CREATOR = new Parcelable.Creator<Icon>() {
+        @Override
+        public Icon createFromParcel(Parcel source) {
+            return new Icon(source);
+        }
+
+        @Override
+        public Icon[] newArray(int size) {
+            return new Icon[size];
+        }
+    };
 }
