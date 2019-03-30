@@ -9,15 +9,20 @@ import android.view.View;
 import android.widget.EditText;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.gson.Gson;
 import com.homeaway.placesearch.R;
 import com.homeaway.placesearch.adapter.VenueAdapter;
 import com.homeaway.placesearch.model.Venue;
 import com.homeaway.placesearch.model.VenueSearchResponse;
 import com.homeaway.placesearch.utils.LogUtils;
+import com.homeaway.placesearch.utils.PreferenceUtils;
 import com.homeaway.placesearch.utils.RetrofitUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -30,6 +35,8 @@ public class VenueSearchActivity extends AppCompatActivity implements TextWatche
     private static final String TAG = LogUtils.makeLogTag(VenueSearchActivity.class);
     private ArrayList<Venue> mVenueList = new ArrayList<>();
     private VenueAdapter mAdapter;
+    private FloatingActionButton mFloatingActionButton;
+    private List<String> mFavoriteVenueList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,19 +47,22 @@ public class VenueSearchActivity extends AppCompatActivity implements TextWatche
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
 
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        mFloatingActionButton = findViewById(R.id.fab);
+        mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 launchVenueMapActivity();
             }
         });
+        mFloatingActionButton.hide();
 
         EditText edtTxtVw = findViewById(R.id.edtVwSearchPlace);
         edtTxtVw.addTextChangedListener(this);
 
+        retrieveFavoriteListFromSharedPreference();
+
         RecyclerView recyclerView = findViewById(R.id.venue_list);
-        mAdapter = new VenueAdapter(this, mVenueList);
+        mAdapter = new VenueAdapter(this, mVenueList, mFavoriteVenueList);
         recyclerView.setAdapter(mAdapter);
     }
 
@@ -66,6 +76,13 @@ public class VenueSearchActivity extends AppCompatActivity implements TextWatche
 
     @Override
     public void afterTextChanged(Editable place) {
+        if (mVenueList != null && mVenueList.size() > 0) {
+            mVenueList.clear();
+            mAdapter.notifyDataSetChanged();
+            if (mFloatingActionButton != null) {
+                mFloatingActionButton.hide();
+            }
+        }
         if (!TextUtils.isEmpty(place) && place.length() >= 3) {
             fetchVenueList(place.toString());
         }
@@ -89,6 +106,9 @@ public class VenueSearchActivity extends AppCompatActivity implements TextWatche
                             if (null != venues && venues.size() > 0) {
                                 mVenueList.addAll(venues);
                                 mAdapter.notifyDataSetChanged();
+                                if (mFloatingActionButton != null) {
+                                    mFloatingActionButton.show();
+                                }
                             }
                         }
                     }
@@ -102,5 +122,34 @@ public class VenueSearchActivity extends AppCompatActivity implements TextWatche
             }
         };
         RetrofitUtils.getInstance().getService(this).venueSearch(getString(R.string.client_id), getString(R.string.client_secret), getString(R.string.near), query, "20190330", 20).enqueue(responseCallback);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mVenueList.clear();
+        mVenueList = null;
+        saveFavoriteListToSharedPreference();
+    }
+
+    private void saveFavoriteListToSharedPreference() {
+        assert mFavoriteVenueList != null;
+        if (mFavoriteVenueList.size() <= 0) {
+            return;
+        }
+        Gson gson = new Gson();
+        String favoriteVenueString = gson.toJson(mFavoriteVenueList);
+        PreferenceUtils.getInstance(this).putString(PreferenceUtils.FAVORITE_LIST, favoriteVenueString);
+    }
+
+    private void retrieveFavoriteListFromSharedPreference() {
+        Gson gson = new Gson();
+        String jsonText = PreferenceUtils.getInstance(this).getString(PreferenceUtils.FAVORITE_LIST);
+        String[] favoriteVenueArray = gson.fromJson(jsonText, String[].class);
+        if(favoriteVenueArray != null && favoriteVenueArray.length > 0) {
+            mFavoriteVenueList = Arrays.asList(favoriteVenueArray);
+        } else {
+            mFavoriteVenueList = new ArrayList<>();
+        }
     }
 }

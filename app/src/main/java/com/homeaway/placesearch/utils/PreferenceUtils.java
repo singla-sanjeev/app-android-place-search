@@ -11,6 +11,8 @@ public class PreferenceUtils {
     private static final String TAG = LogUtils.makeLogTag(PreferenceUtils.class);
     private static final String SHARED_PREFS_FILE = "homeaway_prefs";
 
+    public static final String FAVORITE_LIST = "favorite_list";
+
 
     private static PreferenceUtils sInstance;
     private SharedPreferences mSharedPreferences;

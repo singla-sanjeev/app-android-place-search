@@ -20,13 +20,18 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> {
-
     private Context mContext;
     private List<Venue> mVenueList;
+    private List<String> mFavoriteVenueList;
+    private double mCenterOfSeattleLatitude;
+    private double mCenterOfSeattleLongitude;
 
-    public VenueAdapter(Context context, List<Venue> venueList) {
+    public VenueAdapter(Context context, List<Venue> venueList, List<String> favoriteVenueList) {
         mContext = context;
         mVenueList = venueList;
+        mFavoriteVenueList = favoriteVenueList;
+        mCenterOfSeattleLatitude = Double.parseDouble(mContext.getResources().getString(R.string.centre_of_seattle_latitude));
+        mCenterOfSeattleLongitude = Double.parseDouble(mContext.getResources().getString(R.string.centre_of_seattle_longitude));
     }
 
     @NonNull
@@ -40,15 +45,33 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
     public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
         final Venue venue = mVenueList.get(position);
         holder.mNameTxtVw.setText(venue.getName());
-        holder.mCategoryTxtVw.setText(venue.getCategories().get(0).getName());
-        holder.mDistanceTxtVw.setText(String.format(mContext.getString(R.string.distance), getDistance(venue.getLocation().getLat(), venue.getLocation().getLng())));
+        if (venue.getCategories() != null && venue.getCategories().size() > 0) {
+            holder.mCategoryTxtVw.setText(venue.getCategories().get(0).getName());
+        } else {
+            holder.mCategoryTxtVw.setVisibility(View.INVISIBLE);
+        }
+        if(venue.getLocation() != null) {
+            holder.mDistanceTxtVw.setText(String.format(mContext.getString(R.string.distance), getDistance(venue.getLocation().getLat(), venue.getLocation().getLng())));
+        }
         //TODO: Need to set icon
-        //holder.mCatIcon.setImageResource(R.drawable.ic_category_placeholder);
+        holder.mCatIcon.setImageResource(R.drawable.ic_category_placeholder);
+
+        if(mFavoriteVenueList.contains(venue.getId())) {
+            holder.mFavIcon.setImageResource(R.drawable.ic_favorite);
+        } else {
+            holder.mFavIcon.setImageResource(R.drawable.ic_favorite_border);
+        }
         holder.mFavIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //TODO:Need to add fav action
-                holder.mFavIcon.setImageResource(R.drawable.ic_favorite);
+                if(mFavoriteVenueList.contains(venue.getId())) {
+                    mFavoriteVenueList.remove(venue.getId());
+                    holder.mFavIcon.setImageResource(R.drawable.ic_favorite_border);
+                } else {
+                    mFavoriteVenueList.add(venue.getId());
+                    holder.mFavIcon.setImageResource(R.drawable.ic_favorite);
+                }
             }
         });
         holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -84,23 +107,10 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
         }
     }
 
-    private String getDistance(double latitude, double longitude){
-        float distance=0;
-        Location location=new Location("Current location");
-        location.setLatitude(latitude);
-        location.setLongitude(longitude);
-
-        Location centerLocation=new Location(mContext.getResources().getString(R.string.near));
-        double centerLat = Double.parseDouble(mContext.getResources().getString(R.string.centre_of_seattle_latitude));
-        double centerLong = Double.parseDouble(mContext.getResources().getString(R.string.centre_of_seattle_longitude));
-        centerLocation.setLatitude(centerLat);
-        centerLocation.setLongitude(centerLong);
-
-
-        //TODO: Need to convert distance in miles
-       distance = location.distanceTo(centerLocation);  //in meters
-        //distance =crntLocation.distanceTo(newLocation) / 1000; // in km
-
-        return String.valueOf(distance);
+    private String getDistance(double latitude, double longitude) {
+        float distance[] = new float[3];
+        Location.distanceBetween(mCenterOfSeattleLatitude, mCenterOfSeattleLongitude, latitude, longitude, distance);  //in meters
+        float distanceInMiles = (float) (distance[0] * 0.00062137);
+        return String.format("%.2f Miles", distanceInMiles);
     }
 }

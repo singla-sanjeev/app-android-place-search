@@ -2,6 +2,7 @@ package com.homeaway.placesearch.ui;
 
 import androidx.fragment.app.FragmentActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -18,12 +19,12 @@ import com.homeaway.placesearch.model.Venue;
 
 import java.util.ArrayList;
 
-public class VenueMapActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+public class VenueMapActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener {
 
     private GoogleMap mMap;
     public static final String VENUE_LIST_BUNDLE_ID = "VENUE_LIST_BUNDLE_ID";
     private ArrayList<Venue> mVenueList;
-    public static final int MAP_ZOOM_LEVEL = 13; //8 Venues
+    public static final int MAP_ZOOM_LEVEL = 14; //8 Venues
 
 
     @Override
@@ -51,6 +52,7 @@ public class VenueMapActivity extends FragmentActivity implements OnMapReadyCall
         for (Venue venue : mVenueList) {
             latLng = new LatLng(venue.getLocation().getLat(), venue.getLocation().getLng());
             markerOptions = new MarkerOptions().position(latLng);
+            markerOptions.title(venue.getName());
             markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_pin));
             mMap.addMarker(markerOptions);
         }
@@ -60,6 +62,7 @@ public class VenueMapActivity extends FragmentActivity implements OnMapReadyCall
         if (mMap != null) {
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         }
+        mMap.setOnInfoWindowClickListener(this);
     }
 
     /**
@@ -74,12 +77,24 @@ public class VenueMapActivity extends FragmentActivity implements OnMapReadyCall
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
         markVenueLocationsOnMap();
     }
 
     @Override
     public boolean onMarkerClick(Marker marker) {
-        return false;
+        CameraPosition cameraPosition = new CameraPosition.Builder().target(marker.getPosition())
+                .zoom(MAP_ZOOM_LEVEL).bearing(0).tilt(0).build();
+        if (mMap != null) {
+            mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        }
+        marker.showInfoWindow();
+
+        return true;
+    }
+
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+        Intent intent = new Intent(this, VenueDetailActivity.class);
+        startActivity(intent);
     }
 }

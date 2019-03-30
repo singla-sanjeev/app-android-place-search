@@ -21,8 +21,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".ui.VenueSearchActivity"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:name=".ui.VenueSearchActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -31,8 +30,7 @@
         <activity
             android:name=".ui.VenueDetailActivity"
             android:label="@string/title_venue_detail"
-            android:parentActivityName=".ui.VenueSearchActivity"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:parentActivityName=".ui.VenueSearchActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.homeaway.placesearch.ui.VenueSearchActivity" />
