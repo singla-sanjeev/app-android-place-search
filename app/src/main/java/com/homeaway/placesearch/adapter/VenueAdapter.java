@@ -12,7 +12,10 @@ import android.widget.TextView;
 import com.homeaway.placesearch.R;
 import com.homeaway.placesearch.model.Venue;
 import com.homeaway.placesearch.ui.VenueDetailActivity;
-import com.homeaway.placesearch.ui.VenueDetailFragment;
+import com.homeaway.placesearch.utils.LogUtils;
+import com.homeaway.placesearch.utils.RetrofitUtils;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -20,6 +23,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> {
+    private static final String TAG = LogUtils.makeLogTag(VenueAdapter.class);
     private Context mContext;
     private List<Venue> mVenueList;
     private List<String> mFavoriteVenueList;
@@ -50,13 +54,18 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
         } else {
             holder.mCategoryTxtVw.setVisibility(View.INVISIBLE);
         }
-        if(venue.getLocation() != null) {
+        if (venue.getLocation() != null) {
             holder.mDistanceTxtVw.setText(String.format(mContext.getString(R.string.distance), getDistance(venue.getLocation().getLat(), venue.getLocation().getLng())));
         }
-        //TODO: Need to set icon
-        holder.mCatIcon.setImageResource(R.drawable.ic_category_placeholder);
 
-        if(mFavoriteVenueList.contains(venue.getId())) {
+        if (venue.getCategories() != null && venue.getCategories().size() > 0) {
+            holder.mCatIcon.setVisibility(View.INVISIBLE);
+            String iconUrl = venue.getCategories().get(0).getIcon().getPrefix().replace("\\", "") + "bg_64" +
+                    venue.getCategories().get(0).getIcon().getSuffix();
+            loadCategoryImage(iconUrl, holder);
+        }
+
+        if (mFavoriteVenueList.contains(venue.getId())) {
             holder.mFavIcon.setImageResource(R.drawable.ic_favorite);
         } else {
             holder.mFavIcon.setImageResource(R.drawable.ic_favorite_border);
@@ -64,8 +73,7 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
         holder.mFavIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO:Need to add fav action
-                if(mFavoriteVenueList.contains(venue.getId())) {
+                if (mFavoriteVenueList.contains(venue.getId())) {
                     mFavoriteVenueList.remove(venue.getId());
                     holder.mFavIcon.setImageResource(R.drawable.ic_favorite_border);
                 } else {
@@ -78,8 +86,26 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(mContext, VenueDetailActivity.class);
-                intent.putExtra(VenueDetailFragment.ARG_ITEM_ID, venue.getId());
+                intent.putExtra(VenueDetailActivity.VENUE_BUNDLE_ID, venue);
                 mContext.startActivity(intent);
+            }
+        });
+    }
+
+    private void loadCategoryImage(String imageUrl, final ViewHolder holder) {
+        Picasso picasso = RetrofitUtils.getInstance().getPicassoImageDownloader(mContext);
+        picasso.load(imageUrl).into(holder.mCatIcon, new Callback() {
+
+            @Override
+            public void onSuccess() {
+                holder.mCatIcon.setVisibility(View.VISIBLE);
+                LogUtils.checkIf(TAG, "loadCategoryImage: onSuccess");
+            }
+
+            @Override
+            public void onError() {
+                holder.mCatIcon.setVisibility(View.VISIBLE);
+                LogUtils.checkIf(TAG, "loadCategoryImage: onError");
             }
         });
     }

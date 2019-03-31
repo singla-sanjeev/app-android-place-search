@@ -1,7 +1,5 @@
 package com.homeaway.placesearch.ui;
 
-import androidx.fragment.app.FragmentActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -18,6 +16,8 @@ import com.homeaway.placesearch.R;
 import com.homeaway.placesearch.model.Venue;
 
 import java.util.ArrayList;
+
+import androidx.fragment.app.FragmentActivity;
 
 public class VenueMapActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener {
 
@@ -95,6 +95,12 @@ public class VenueMapActivity extends FragmentActivity implements OnMapReadyCall
     @Override
     public void onInfoWindowClick(Marker marker) {
         Intent intent = new Intent(this, VenueDetailActivity.class);
+        for (Venue venue : mVenueList) {
+            if (venue.getLocation().getLat() == marker.getPosition().latitude && venue.getLocation().getLng() == marker.getPosition().longitude) {
+                intent.putExtra(VenueDetailActivity.VENUE_BUNDLE_ID, venue);
+                break;
+            }
+        }
         startActivity(intent);
     }
 }

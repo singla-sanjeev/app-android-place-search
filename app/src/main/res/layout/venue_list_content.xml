@@ -48,7 +48,6 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="10dp"
-        android:contentDescription="@string/app_name"
         android:scaleType="fitXY"
         android:src="@drawable/ic_category_placeholder"
         app:layout_constraintLeft_toLeftOf="parent"

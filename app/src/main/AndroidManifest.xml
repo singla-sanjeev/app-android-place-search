@@ -30,10 +30,11 @@
         <activity
             android:name=".ui.VenueDetailActivity"
             android:label="@string/title_venue_detail"
-            android:parentActivityName=".ui.VenueSearchActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.homeaway.placesearch.ui.VenueSearchActivity" />
+            android:screenOrientation="portrait"></activity>
+        <activity
+            android:name=".ui.VenueMapActivity"
+            android:label="@string/title_activity_maps"
+            android:screenOrientation="portrait">
         </activity>
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
@@ -46,11 +47,5 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
-
-        <activity
-            android:name=".ui.VenueMapActivity"
-            android:label="@string/title_activity_maps">
-        </activity>
     </application>
-
 </manifest>

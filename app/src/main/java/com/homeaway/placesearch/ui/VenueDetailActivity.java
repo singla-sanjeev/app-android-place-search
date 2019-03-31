@@ -1,21 +1,25 @@
 package com.homeaway.placesearch.ui;
 
-import android.content.Intent;
+import android.graphics.Point;
 import android.os.Bundle;
+import android.view.Display;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-
-import androidx.appcompat.widget.Toolbar;
-
-import android.view.View;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.ActionBar;
-
-import android.view.MenuItem;
-
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.material.appbar.AppBarLayout;
 import com.homeaway.placesearch.R;
+import com.homeaway.placesearch.model.Venue;
+
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
 /**
  * An activity representing a single Venue detail screen. This
@@ -23,7 +27,11 @@ import com.homeaway.placesearch.R;
  * item details are presented side-by-side with a list of items
  * in a {@link VenueSearchActivity}.
  */
-public class VenueDetailActivity extends AppCompatActivity {
+public class VenueDetailActivity extends AppCompatActivity implements OnMapReadyCallback {
+    public static final String VENUE_BUNDLE_ID = "VENUE_BUNDLE_ID";
+    public static final int MAP_ZOOM_LEVEL = 14; //8 Venues
+    private Venue mVenue;
+    private GoogleMap mMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,14 +40,19 @@ public class VenueDetailActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own detail action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        assert getIntent() != null;
+        mVenue = getIntent().getParcelableExtra(VENUE_BUNDLE_ID);
+
+        //capture the size of the devices screen
+        Display display = getWindowManager().getDefaultDisplay();
+        Point outSize = new Point();
+        display.getSize(outSize);
+
+        AppBarLayout appBarLayout = findViewById(R.id.app_bar);
+        CoordinatorLayout.LayoutParams layoutParams =
+                new CoordinatorLayout.LayoutParams(outSize.x, outSize.y / 2);
+
+        appBarLayout.setLayoutParams(layoutParams);
 
         // Show the Up button in the action bar.
         ActionBar actionBar = getSupportActionBar();
@@ -47,42 +60,42 @@ public class VenueDetailActivity extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        // savedInstanceState is non-null when there is fragment state
-        // saved from previous configurations of this activity
-        // (e.g. when rotating the screen from portrait to landscape).
-        // In this case, the fragment will automatically be re-added
-        // to its container so we don't need to manually add it.
-        // For more information, see the Fragments API guide at:
-        //
-        // http://developer.android.com/guide/components/fragments.html
-        //
-        if (savedInstanceState == null) {
-            // Create the detail fragment and add it to the activity
-            // using a fragment transaction.
-            Bundle arguments = new Bundle();
-            arguments.putString(VenueDetailFragment.ARG_ITEM_ID,
-                    getIntent().getStringExtra(VenueDetailFragment.ARG_ITEM_ID));
-            VenueDetailFragment fragment = new VenueDetailFragment();
-            fragment.setArguments(arguments);
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.venue_detail_container, fragment)
-                    .commit();
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+    }
+
+    private void markVenueLocationsOnMap() {
+
+        if (mMap == null) {
+            return;
+        }
+        MarkerOptions markerOptions;
+        LatLng latLng;
+
+        latLng = new LatLng(mVenue.getLocation().getLat(), mVenue.getLocation().getLng());
+        markerOptions = new MarkerOptions().position(latLng);
+        markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_pin));
+        mMap.addMarker(markerOptions);
+
+        latLng = new LatLng(Float.valueOf(getString(R.string.centre_of_seattle_latitude)),
+                Float.valueOf(getString(R.string.centre_of_seattle_longitude)));
+        markerOptions = new MarkerOptions().position(latLng);
+        markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_pin));
+        mMap.addMarker(markerOptions);
+
+
+        CameraPosition cameraPosition = new CameraPosition.Builder().target(latLng)
+                .zoom(MAP_ZOOM_LEVEL).bearing(0).tilt(0).build();
+        if (mMap != null) {
+            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         }
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == android.R.id.home) {
-            // This ID represents the Home or Up button. In the case of this
-            // activity, the Up button is shown. For
-            // more details, see the Navigation pattern on Android Design:
-            //
-            // http://developer.android.com/design/patterns/navigation.html#up-vs-back
-            //
-            navigateUpTo(new Intent(this, VenueSearchActivity.class));
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+        markVenueLocationsOnMap();
     }
 }

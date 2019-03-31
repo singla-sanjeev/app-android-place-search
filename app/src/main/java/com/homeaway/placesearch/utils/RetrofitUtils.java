@@ -10,6 +10,8 @@ import com.homeaway.placesearch.APIInterface;
 import com.homeaway.placesearch.BuildConfig;
 import com.homeaway.placesearch.R;
 import com.homeaway.placesearch.model.GenericResponse;
+import com.jakewharton.picasso.OkHttp3Downloader;
+import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -41,6 +43,8 @@ public class RetrofitUtils {
     private static final String TAG = LogUtils.makeLogTag(RetrofitUtils.class);
 
     private static RetrofitUtils sInstance;
+    private static volatile Picasso mPicasso;
+
     public static final long LOW_PRIORITY_TIMEOUT = 30 * 1000; // 30 Seconds
     private static final long MEDIUM_PRIORITY_TIMEOUT = 60 * 1000; // 60 Seconds
     public static final long HIGH_PRIORITY_TIMEOUT = 120 * 1000; // 120 Seconds
@@ -100,7 +104,18 @@ public class RetrofitUtils {
         return genericResponse;
     }
 
-
+    public Picasso getPicassoImageDownloader(Context context) {
+        if (mPicasso == null) {
+            Picasso.Builder builder = new Picasso.Builder(context);
+            OkHttpClient okHttp3Client = new OkHttpClient();
+            OkHttp3Downloader okHttp3Downloader = new OkHttp3Downloader(okHttp3Client);
+            builder.downloader(okHttp3Downloader);
+            synchronized (Picasso.class) {
+                mPicasso = builder.build();
+            }
+        }
+        return mPicasso;
+    }
 
     private Retrofit buildRetrofitAdapter(String baseUrl, OkHttpClient okHttpClient) {
         if (okHttpClient == null || TextUtils.isEmpty(baseUrl)) {
