@@ -16,6 +16,10 @@ public interface APIInterface {
      *
      */
     @GET("venues/search")
-    Call<VenueSearchResponse> venueSearch(@Query("client_id") String clientId, @Query("client_secret") String clientSecret, @Query("near") String near, @Query("query") String query, @Query("v") String version, @Query("limit") int limit);
+    Call<VenueSearchResponse> venueSearch(@Query("client_id") String clientId,
+                                          @Query("client_secret") String clientSecret,
+                                          @Query("near") String near, @Query("query") String query,
+                                          @Query("v") String version,
+                                          @Query("limit") int limit);
 
 }

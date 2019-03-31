@@ -18,6 +18,7 @@ import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
+import java.util.Map;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -26,14 +27,14 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
     private static final String TAG = LogUtils.makeLogTag(VenueAdapter.class);
     private Context mContext;
     private List<Venue> mVenueList;
-    private List<String> mFavoriteVenueList;
+    private Map<String, Venue> mFavoriteMap;
     private double mCenterOfSeattleLatitude;
     private double mCenterOfSeattleLongitude;
 
-    public VenueAdapter(Context context, List<Venue> venueList, List<String> favoriteVenueList) {
+    public VenueAdapter(Context context, List<Venue> venueList, Map<String, Venue> favoriteMap) {
         mContext = context;
         mVenueList = venueList;
-        mFavoriteVenueList = favoriteVenueList;
+        mFavoriteMap = favoriteMap;
         mCenterOfSeattleLatitude = Double.parseDouble(mContext.getResources().getString(R.string.centre_of_seattle_latitude));
         mCenterOfSeattleLongitude = Double.parseDouble(mContext.getResources().getString(R.string.centre_of_seattle_longitude));
     }
@@ -65,19 +66,23 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
             loadCategoryImage(iconUrl, holder);
         }
 
-        if (mFavoriteVenueList.contains(venue.getId())) {
+        if (mFavoriteMap.containsKey(venue.getId())) {
+            venue.setFavorite(true);
             holder.mFavIcon.setImageResource(R.drawable.ic_favorite);
         } else {
+            venue.setFavorite(false);
             holder.mFavIcon.setImageResource(R.drawable.ic_favorite_border);
         }
         holder.mFavIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mFavoriteVenueList.contains(venue.getId())) {
-                    mFavoriteVenueList.remove(venue.getId());
+                if (venue.isFavorite()) {
+                    venue.setFavorite(false);
+                    mFavoriteMap.remove(venue.getId());
                     holder.mFavIcon.setImageResource(R.drawable.ic_favorite_border);
                 } else {
-                    mFavoriteVenueList.add(venue.getId());
+                    venue.setFavorite(true);
+                    mFavoriteMap.put(venue.getId(), null);
                     holder.mFavIcon.setImageResource(R.drawable.ic_favorite);
                 }
             }

@@ -2,6 +2,7 @@ package com.homeaway.placesearch.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -9,7 +10,6 @@ import android.view.View;
 import android.widget.EditText;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.gson.Gson;
 import com.homeaway.placesearch.R;
 import com.homeaway.placesearch.adapter.VenueAdapter;
 import com.homeaway.placesearch.model.Venue;
@@ -19,10 +19,10 @@ import com.homeaway.placesearch.utils.PreferenceUtils;
 import com.homeaway.placesearch.utils.RetrofitUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -36,7 +36,7 @@ public class VenueSearchActivity extends AppCompatActivity implements TextWatche
     private ArrayList<Venue> mVenueList = new ArrayList<>();
     private VenueAdapter mAdapter;
     private FloatingActionButton mFloatingActionButton;
-    private List<String> mFavoriteVenueList;
+    private Map<String, Venue> mFavoriteMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,7 +62,7 @@ public class VenueSearchActivity extends AppCompatActivity implements TextWatche
         retrieveFavoriteListFromSharedPreference();
 
         RecyclerView recyclerView = findViewById(R.id.venue_list);
-        mAdapter = new VenueAdapter(this, mVenueList, mFavoriteVenueList);
+        mAdapter = new VenueAdapter(this, mVenueList, mFavoriteMap);
         recyclerView.setAdapter(mAdapter);
     }
 
@@ -75,16 +75,23 @@ public class VenueSearchActivity extends AppCompatActivity implements TextWatche
     }
 
     @Override
-    public void afterTextChanged(Editable place) {
-        if (mVenueList != null && mVenueList.size() > 0) {
+    public void afterTextChanged(final Editable place) {
+        if (mFloatingActionButton != null && mFloatingActionButton.isOrWillBeShown()) {
+            mFloatingActionButton.hide();
+        }
+        if (mVenueList != null) {
             mVenueList.clear();
             mAdapter.notifyDataSetChanged();
-            if (mFloatingActionButton != null) {
-                mFloatingActionButton.hide();
-            }
         }
+
         if (!TextUtils.isEmpty(place) && place.length() >= 3) {
-            fetchVenueList(place.toString());
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    fetchVenueList(place.toString());
+                }
+            }, 500);
+
         }
     }
 
@@ -100,10 +107,12 @@ public class VenueSearchActivity extends AppCompatActivity implements TextWatche
             public void onResponse(Call<VenueSearchResponse> call, Response<VenueSearchResponse> response) {
                 if (response != null && response.isSuccessful()) {
                     VenueSearchResponse venueSearchResponse = response.body();
-                    if (venueSearchResponse != null && venueSearchResponse.getMeta() != null && venueSearchResponse.getMeta().getCode() == 200) {
+                    if (venueSearchResponse != null && venueSearchResponse.getMeta() != null
+                            && venueSearchResponse.getMeta().getCode() == 200) {
                         if (venueSearchResponse.getResponse() != null) {
                             List<Venue> venues = venueSearchResponse.getResponse().getVenues();
                             if (null != venues && venues.size() > 0) {
+                                mVenueList.clear();
                                 mVenueList.addAll(venues);
                                 mAdapter.notifyDataSetChanged();
                                 if (mFloatingActionButton != null) {
@@ -121,7 +130,13 @@ public class VenueSearchActivity extends AppCompatActivity implements TextWatche
                 LogUtils.checkIf(TAG, "Throwable: " + throwable.toString());
             }
         };
-        RetrofitUtils.getInstance().getService(this).venueSearch(getString(R.string.client_id), getString(R.string.client_secret), getString(R.string.near), query, "20190330", 20).enqueue(responseCallback);
+        RetrofitUtils.getInstance().getService(this).venueSearch(
+                getString(R.string.client_id),
+                getString(R.string.client_secret),
+                getString(R.string.near),
+                query,
+                "20190330",
+                20).enqueue(responseCallback);
     }
 
     @Override
@@ -133,23 +148,25 @@ public class VenueSearchActivity extends AppCompatActivity implements TextWatche
     }
 
     private void saveFavoriteListToSharedPreference() {
-        assert mFavoriteVenueList != null;
-        if (mFavoriteVenueList.size() <= 0) {
+        assert mFavoriteMap != null;
+        if (mFavoriteMap.size() <= 0) {
             return;
         }
-        Gson gson = new Gson();
-        String favoriteVenueString = gson.toJson(mFavoriteVenueList);
-        PreferenceUtils.getInstance(this).putString(PreferenceUtils.FAVORITE_LIST, favoriteVenueString);
+        PreferenceUtils.getInstance(this).putStringSet(PreferenceUtils.FAVORITE_LIST, mFavoriteMap.keySet());
     }
 
     private void retrieveFavoriteListFromSharedPreference() {
-        Gson gson = new Gson();
-        String jsonText = PreferenceUtils.getInstance(this).getString(PreferenceUtils.FAVORITE_LIST);
-        String[] favoriteVenueArray = gson.fromJson(jsonText, String[].class);
-        if(favoriteVenueArray != null && favoriteVenueArray.length > 0) {
-            mFavoriteVenueList = Arrays.asList(favoriteVenueArray);
-        } else {
-            mFavoriteVenueList = new ArrayList<>();
+        mFavoriteMap = new HashMap<>();
+        Set<String> favoriteSet = null;
+        try {
+            favoriteSet = PreferenceUtils.getInstance(this).getStringSet(PreferenceUtils.FAVORITE_LIST);
+        } catch (Exception e) {
+            LogUtils.error(TAG, e.toString());
+        }
+        if (favoriteSet != null && favoriteSet.size() > 0) {
+            for (String id : favoriteSet) {
+                mFavoriteMap.put(id, null);
+            }
         }
     }
 }

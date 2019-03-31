@@ -13,6 +13,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.homeaway.placesearch.R;
 import com.homeaway.placesearch.model.Venue;
 
@@ -42,6 +43,13 @@ public class VenueDetailActivity extends AppCompatActivity implements OnMapReady
 
         assert getIntent() != null;
         mVenue = getIntent().getParcelableExtra(VENUE_BUNDLE_ID);
+
+        FloatingActionButton fab = findViewById(R.id.fab);
+        if (mVenue != null && mVenue.isFavorite()) {
+            fab.setImageResource(R.drawable.ic_favorite);
+        } else {
+            fab.setImageResource(R.drawable.ic_favorite_border);
+        }
 
         //capture the size of the devices screen
         Display display = getWindowManager().getDefaultDisplay();
