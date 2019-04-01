@@ -1,6 +1,9 @@
 package com.homeaway.placesearch.ui;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
@@ -33,10 +36,18 @@ import retrofit2.Response;
 
 public class VenueSearchActivity extends AppCompatActivity implements TextWatcher {
     private static final String TAG = LogUtils.makeLogTag(VenueSearchActivity.class);
+
+    public static Handler sHandler;
+    public static Runnable sRunnable;
+
     private ArrayList<Venue> mVenueList = new ArrayList<>();
+    private RecyclerView mRecyclerView;
     private VenueAdapter mAdapter;
     private FloatingActionButton mFloatingActionButton;
     private Map<String, Venue> mFavoriteMap;
+
+    private static final long sDelayInMillSeconds = 200;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,9 +72,30 @@ public class VenueSearchActivity extends AppCompatActivity implements TextWatche
 
         retrieveFavoriteListFromSharedPreference();
 
-        RecyclerView recyclerView = findViewById(R.id.venue_list);
+        mRecyclerView = findViewById(R.id.venue_list);
         mAdapter = new VenueAdapter(this, mVenueList, mFavoriteMap);
-        recyclerView.setAdapter(mAdapter);
+        mRecyclerView.setAdapter(mAdapter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (sHandler != null && sRunnable != null) {
+            sHandler.removeCallbacks(sRunnable);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mVenueList.clear();
+        mVenueList = null;
+        if (sHandler != null && sRunnable != null) {
+            sHandler.removeCallbacks(sRunnable);
+            sHandler = null;
+            sRunnable = null;
+        }
+        saveFavoriteListToSharedPreference();
     }
 
     @Override
@@ -72,6 +104,9 @@ public class VenueSearchActivity extends AppCompatActivity implements TextWatche
 
     @Override
     public void onTextChanged(CharSequence s, int start, int before, int count) {
+        if (sHandler != null && sRunnable != null) {
+            sHandler.removeCallbacks(sRunnable);
+        }
     }
 
     @Override
@@ -79,29 +114,40 @@ public class VenueSearchActivity extends AppCompatActivity implements TextWatche
         if (mFloatingActionButton != null && mFloatingActionButton.isOrWillBeShown()) {
             mFloatingActionButton.hide();
         }
-        if (mVenueList != null) {
+        if (mVenueList != null && mVenueList.size() > 0 && place.length() <= 1) {
             mVenueList.clear();
             mAdapter.notifyDataSetChanged();
         }
 
-        if (!TextUtils.isEmpty(place) && place.length() >= 3) {
-            new Handler().postDelayed(new Runnable() {
+        if (!TextUtils.isEmpty(place) && place.length() >= 2) {
+            sHandler = new Handler();
+            sRunnable = new Runnable() {
                 @Override
                 public void run() {
                     fetchVenueList(place.toString());
                 }
-            }, 500);
-
+            };
+            sHandler.postDelayed(sRunnable, sDelayInMillSeconds);
         }
     }
 
     private void launchVenueMapActivity() {
+        if (sHandler != null && sRunnable != null) {
+            sHandler.removeCallbacks(sRunnable);
+            sHandler = null;
+            sRunnable = null;
+        }
         Intent intent = new Intent(this, VenueMapActivity.class);
         intent.putParcelableArrayListExtra(VenueMapActivity.VENUE_LIST_BUNDLE_ID, mVenueList);
         startActivity(intent);
     }
 
     private void fetchVenueList(String query) {
+        if(!isInternetAvailable(this)) {
+            LogUtils.info(TAG, "Looks like your internet connection is taking a nap!");
+            return;
+        }
+
         Callback<VenueSearchResponse> responseCallback = new Callback<VenueSearchResponse>() {
             @Override
             public void onResponse(Call<VenueSearchResponse> call, Response<VenueSearchResponse> response) {
@@ -136,15 +182,28 @@ public class VenueSearchActivity extends AppCompatActivity implements TextWatche
                 getString(R.string.near),
                 query,
                 "20190330",
-                20).enqueue(responseCallback);
+                50).enqueue(responseCallback);
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mVenueList.clear();
-        mVenueList = null;
-        saveFavoriteListToSharedPreference();
+    private boolean isInternetAvailable(Context context) {
+        boolean isConnected = false;
+
+        if(context == null){
+            return isConnected;
+        }
+
+        ConnectivityManager connectivityManager = (ConnectivityManager) context
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        if (connectivityManager == null) {
+            return isConnected;
+        }
+
+        NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
+
+        isConnected = activeNetwork != null && activeNetwork.isConnected();
+
+        return isConnected;
     }
 
     private void saveFavoriteListToSharedPreference() {

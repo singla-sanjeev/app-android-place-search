@@ -12,6 +12,7 @@ import android.widget.TextView;
 import com.homeaway.placesearch.R;
 import com.homeaway.placesearch.model.Venue;
 import com.homeaway.placesearch.ui.VenueDetailActivity;
+import com.homeaway.placesearch.ui.VenueSearchActivity;
 import com.homeaway.placesearch.utils.LogUtils;
 import com.homeaway.placesearch.utils.RetrofitUtils;
 import com.squareup.picasso.Callback;
@@ -76,6 +77,11 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
         holder.mFavIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (VenueSearchActivity.sHandler != null && VenueSearchActivity.sRunnable != null) {
+                    VenueSearchActivity.sHandler.removeCallbacks(VenueSearchActivity.sRunnable);
+                    VenueSearchActivity.sHandler = null;
+                    VenueSearchActivity.sRunnable = null;
+                }
                 if (venue.isFavorite()) {
                     venue.setFavorite(false);
                     mFavoriteMap.remove(venue.getId());
@@ -90,6 +96,11 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (VenueSearchActivity.sHandler != null && VenueSearchActivity.sRunnable != null) {
+                    VenueSearchActivity.sHandler.removeCallbacks(VenueSearchActivity.sRunnable);
+                    VenueSearchActivity.sHandler = null;
+                    VenueSearchActivity.sRunnable = null;
+                }
                 Intent intent = new Intent(mContext, VenueDetailActivity.class);
                 intent.putExtra(VenueDetailActivity.VENUE_BUNDLE_ID, venue);
                 mContext.startActivity(intent);
@@ -133,8 +144,8 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
             mNameTxtVw = itemView.findViewById(R.id.txtVwName);
             mCategoryTxtVw = itemView.findViewById(R.id.txtVwCategory);
             mDistanceTxtVw = itemView.findViewById(R.id.txtVwDistance);
-            mFavIcon = itemView.findViewById(R.id.iconFav);
-            mCatIcon = itemView.findViewById(R.id.iconCat);
+            mFavIcon = itemView.findViewById(R.id.imgVwFavoriteIcon);
+            mCatIcon = itemView.findViewById(R.id.imgViewCategoryIcon);
         }
     }
 
