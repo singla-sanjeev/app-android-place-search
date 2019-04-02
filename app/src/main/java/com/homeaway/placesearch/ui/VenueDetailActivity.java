@@ -15,12 +15,14 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.homeaway.placesearch.R;
+import com.homeaway.placesearch.databinding.ActivityVenueDetailBinding;
 import com.homeaway.placesearch.model.Venue;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.databinding.DataBindingUtil;
 
 /**
  * An activity representing a single Venue detail screen. This
@@ -33,17 +35,19 @@ public class VenueDetailActivity extends AppCompatActivity implements OnMapReady
     public static final int MAP_ZOOM_LEVEL = 14; //8 Venues
     private Venue mVenue;
     private GoogleMap mMap;
+    private ActivityVenueDetailBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_venue_detail);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_venue_detail);
+        Toolbar toolbar = findViewById(R.id.detail_toolbar);
         setSupportActionBar(toolbar);
 
         assert getIntent() != null;
         mVenue = getIntent().getParcelableExtra(VENUE_BUNDLE_ID);
-
+        binding.setVenue(mVenue);
+        binding.setCategory(mVenue.getCategories().get(0));
         FloatingActionButton fab = findViewById(R.id.fab);
         if (mVenue != null && mVenue.isFavorite()) {
             fab.setImageResource(R.drawable.ic_favorite);
@@ -51,6 +55,7 @@ public class VenueDetailActivity extends AppCompatActivity implements OnMapReady
             fab.setImageResource(R.drawable.ic_favorite_border);
         }
 
+        fab.setOnClickListener(view -> favoriteClicked());
         //capture the size of the devices screen
         Display display = getWindowManager().getDefaultDisplay();
         Point outSize = new Point();
@@ -74,8 +79,11 @@ public class VenueDetailActivity extends AppCompatActivity implements OnMapReady
         mapFragment.getMapAsync(this);
     }
 
-    private void markVenueLocationsOnMap() {
+    private void favoriteClicked(){
+        //TODO: Need to add action
+    }
 
+    private void markVenueLocationsOnMap() {
         if (mMap == null) {
             return;
         }

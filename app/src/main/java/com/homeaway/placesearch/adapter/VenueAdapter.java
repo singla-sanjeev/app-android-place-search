@@ -19,6 +19,7 @@ import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import androidx.annotation.NonNull;
@@ -74,41 +75,35 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
             venue.setFavorite(false);
             holder.mFavIcon.setImageResource(R.drawable.ic_favorite_border);
         }
-        holder.mFavIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (VenueSearchActivity.sHandler != null && VenueSearchActivity.sRunnable != null) {
-                    VenueSearchActivity.sHandler.removeCallbacks(VenueSearchActivity.sRunnable);
-                    VenueSearchActivity.sHandler = null;
-                    VenueSearchActivity.sRunnable = null;
+        holder.mFavIcon.setOnClickListener(v -> {
+            if (VenueSearchActivity.sHandler != null && VenueSearchActivity.sRunnable != null) {
+                VenueSearchActivity.sHandler.removeCallbacks(VenueSearchActivity.sRunnable);
+                VenueSearchActivity.sHandler = null;
+                VenueSearchActivity.sRunnable = null;
+            }
+            if (venue.isFavorite()) {
+                venue.setFavorite(false);
+                if (mFavoriteMap != null) {
+                    mFavoriteMap.remove(venue.getId());
                 }
-                if (venue.isFavorite()) {
-                    venue.setFavorite(false);
-                    if (mFavoriteMap != null) {
-                        mFavoriteMap.remove(venue.getId());
-                    }
-                    holder.mFavIcon.setImageResource(R.drawable.ic_favorite_border);
-                } else {
-                    venue.setFavorite(true);
-                    if (mFavoriteMap != null) {
-                        mFavoriteMap.put(venue.getId(), null);
-                    }
-                    holder.mFavIcon.setImageResource(R.drawable.ic_favorite);
+                holder.mFavIcon.setImageResource(R.drawable.ic_favorite_border);
+            } else {
+                venue.setFavorite(true);
+                if (mFavoriteMap != null) {
+                    mFavoriteMap.put(venue.getId(), venue);
                 }
+                holder.mFavIcon.setImageResource(R.drawable.ic_favorite);
             }
         });
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (VenueSearchActivity.sHandler != null && VenueSearchActivity.sRunnable != null) {
-                    VenueSearchActivity.sHandler.removeCallbacks(VenueSearchActivity.sRunnable);
-                    VenueSearchActivity.sHandler = null;
-                    VenueSearchActivity.sRunnable = null;
-                }
-                Intent intent = new Intent(mContext, VenueDetailActivity.class);
-                intent.putExtra(VenueDetailActivity.VENUE_BUNDLE_ID, venue);
-                mContext.startActivity(intent);
+        holder.itemView.setOnClickListener(view -> {
+            if (VenueSearchActivity.sHandler != null && VenueSearchActivity.sRunnable != null) {
+                VenueSearchActivity.sHandler.removeCallbacks(VenueSearchActivity.sRunnable);
+                VenueSearchActivity.sHandler = null;
+                VenueSearchActivity.sRunnable = null;
             }
+            Intent intent = new Intent(mContext, VenueDetailActivity.class);
+            intent.putExtra(VenueDetailActivity.VENUE_BUNDLE_ID, venue);
+            mContext.startActivity(intent);
         });
     }
 
@@ -139,18 +134,17 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
         float distance[] = new float[3];
         Location.distanceBetween(mCenterOfSeattleLatitude, mCenterOfSeattleLongitude, latitude, longitude, distance);  //in meters
         float distanceInMiles = (float) (distance[0] * 0.00062137);
-        return String.format("%.2f Miles", distanceInMiles);
+        return String.format(Locale.getDefault(), "%.2f Miles", distanceInMiles);
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
-
+    class ViewHolder extends RecyclerView.ViewHolder {
         private TextView mNameTxtVw;
         private TextView mCategoryTxtVw;
         private TextView mDistanceTxtVw;
         private ImageView mFavIcon;
         private ImageView mCatIcon;
 
-        public ViewHolder(@NonNull View itemView) {
+        ViewHolder(@NonNull View itemView) {
             super(itemView);
             mNameTxtVw = itemView.findViewById(R.id.txtVwName);
             mCategoryTxtVw = itemView.findViewById(R.id.txtVwCategory);
