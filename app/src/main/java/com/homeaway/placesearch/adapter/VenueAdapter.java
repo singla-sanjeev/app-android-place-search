@@ -67,7 +67,7 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
             loadCategoryImage(iconUrl, holder);
         }
 
-        if (mFavoriteMap.containsKey(venue.getId())) {
+        if (mFavoriteMap != null && mFavoriteMap.containsKey(venue.getId())) {
             venue.setFavorite(true);
             holder.mFavIcon.setImageResource(R.drawable.ic_favorite);
         } else {
@@ -84,11 +84,15 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
                 }
                 if (venue.isFavorite()) {
                     venue.setFavorite(false);
-                    mFavoriteMap.remove(venue.getId());
+                    if (mFavoriteMap != null) {
+                        mFavoriteMap.remove(venue.getId());
+                    }
                     holder.mFavIcon.setImageResource(R.drawable.ic_favorite_border);
                 } else {
                     venue.setFavorite(true);
-                    mFavoriteMap.put(venue.getId(), null);
+                    if (mFavoriteMap != null) {
+                        mFavoriteMap.put(venue.getId(), null);
+                    }
                     holder.mFavIcon.setImageResource(R.drawable.ic_favorite);
                 }
             }
