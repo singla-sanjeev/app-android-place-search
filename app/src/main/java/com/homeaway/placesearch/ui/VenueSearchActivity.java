@@ -13,13 +13,14 @@ import android.view.View;
 import android.widget.EditText;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.homeaway.placesearch.Injection;
 import com.homeaway.placesearch.R;
+import com.homeaway.placesearch.VenueListViewModel;
+import com.homeaway.placesearch.ViewModelFactory;
 import com.homeaway.placesearch.adapter.VenueAdapter;
 import com.homeaway.placesearch.model.Venue;
-import com.homeaway.placesearch.model.VenueSearchResponse;
 import com.homeaway.placesearch.utils.LogUtils;
 import com.homeaway.placesearch.utils.PreferenceUtils;
-import com.homeaway.placesearch.utils.RetrofitUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,25 +30,22 @@ import java.util.Set;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.RecyclerView;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class VenueSearchActivity extends AppCompatActivity implements TextWatcher {
     private static final String TAG = LogUtils.makeLogTag(VenueSearchActivity.class);
-
+    private static final long sDelayInMillSeconds = 200;
     public static Handler sHandler;
     public static Runnable sRunnable;
-
     private ArrayList<Venue> mVenueList = new ArrayList<>();
     private RecyclerView mRecyclerView;
     private VenueAdapter mAdapter;
+    private ViewModelFactory mViewModelFactory;
     private FloatingActionButton mFloatingActionButton;
     private Map<String, Venue> mFavoriteMap;
-
-    private static final long sDelayInMillSeconds = 200;
-
+    private VenueListViewModel mVenueListViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +69,23 @@ public class VenueSearchActivity extends AppCompatActivity implements TextWatche
         edtTxtVw.addTextChangedListener(this);
 
         retrieveFavoriteListFromSharedPreference();
+
+        mViewModelFactory = Injection.provideViewModelFactory(this);
+        mVenueListViewModel = ViewModelProviders.of(this, mViewModelFactory).get(VenueListViewModel.class);
+        mVenueListViewModel.init(null);
+        mVenueListViewModel.getVenueList().observe(VenueSearchActivity.this, new Observer<List<Venue>>() {
+            @Override
+            public void onChanged(List<Venue> venues) {
+                if (null != venues && venues.size() > 0) {
+                    mVenueList.clear();
+                    mVenueList.addAll(venues);
+                    mAdapter.notifyDataSetChanged();
+                    if (mFloatingActionButton != null) {
+                        mFloatingActionButton.show();
+                    }
+                }
+            }
+        });
 
         mRecyclerView = findViewById(R.id.venue_list);
         mAdapter = new VenueAdapter(this, mVenueList, mFavoriteMap);
@@ -124,7 +139,11 @@ public class VenueSearchActivity extends AppCompatActivity implements TextWatche
             sRunnable = new Runnable() {
                 @Override
                 public void run() {
-                    fetchVenueList(place.toString());
+                    if (isInternetAvailable(VenueSearchActivity.this)) {
+                        mVenueListViewModel.init(place.toString());
+                    } else {
+                        LogUtils.info(TAG, "Looks like your internet connection is taking a nap!");
+                    }
                 }
             };
             sHandler.postDelayed(sRunnable, sDelayInMillSeconds);
@@ -142,53 +161,10 @@ public class VenueSearchActivity extends AppCompatActivity implements TextWatche
         startActivity(intent);
     }
 
-    private void fetchVenueList(String query) {
-        if(!isInternetAvailable(this)) {
-            LogUtils.info(TAG, "Looks like your internet connection is taking a nap!");
-            return;
-        }
-
-        Callback<VenueSearchResponse> responseCallback = new Callback<VenueSearchResponse>() {
-            @Override
-            public void onResponse(Call<VenueSearchResponse> call, Response<VenueSearchResponse> response) {
-                if (response != null && response.isSuccessful()) {
-                    VenueSearchResponse venueSearchResponse = response.body();
-                    if (venueSearchResponse != null && venueSearchResponse.getMeta() != null
-                            && venueSearchResponse.getMeta().getCode() == 200) {
-                        if (venueSearchResponse.getResponse() != null) {
-                            List<Venue> venues = venueSearchResponse.getResponse().getVenues();
-                            if (null != venues && venues.size() > 0) {
-                                mVenueList.clear();
-                                mVenueList.addAll(venues);
-                                mAdapter.notifyDataSetChanged();
-                                if (mFloatingActionButton != null) {
-                                    mFloatingActionButton.show();
-                                }
-                            }
-                        }
-                    }
-                    LogUtils.checkIf(TAG, response.toString());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<VenueSearchResponse> call, Throwable throwable) {
-                LogUtils.checkIf(TAG, "Throwable: " + throwable.toString());
-            }
-        };
-        RetrofitUtils.getInstance().getService(this).venueSearch(
-                getString(R.string.client_id),
-                getString(R.string.client_secret),
-                getString(R.string.near),
-                query,
-                "20190330",
-                50).enqueue(responseCallback);
-    }
-
     private boolean isInternetAvailable(Context context) {
         boolean isConnected = false;
 
-        if(context == null){
+        if (context == null) {
             return isConnected;
         }
 

@@ -6,9 +6,9 @@ import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.homeaway.placesearch.APIInterface;
 import com.homeaway.placesearch.BuildConfig;
 import com.homeaway.placesearch.R;
+import com.homeaway.placesearch.WebService;
 import com.homeaway.placesearch.model.GenericResponse;
 import com.jakewharton.picasso.OkHttp3Downloader;
 import com.squareup.picasso.Picasso;
@@ -40,22 +40,14 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitUtils {
+    public static final long LOW_PRIORITY_TIMEOUT = 30 * 1000; // 30 Seconds
+    public static final long HIGH_PRIORITY_TIMEOUT = 120 * 1000; // 120 Seconds
     private static final String TAG = LogUtils.makeLogTag(RetrofitUtils.class);
-
+    private static final long MEDIUM_PRIORITY_TIMEOUT = 60 * 1000; // 60 Seconds
     private static RetrofitUtils sInstance;
     private static volatile Picasso mPicasso;
-
-    public static final long LOW_PRIORITY_TIMEOUT = 30 * 1000; // 30 Seconds
-    private static final long MEDIUM_PRIORITY_TIMEOUT = 60 * 1000; // 60 Seconds
-    public static final long HIGH_PRIORITY_TIMEOUT = 120 * 1000; // 120 Seconds
-
     private long mRequestTimeOut = MEDIUM_PRIORITY_TIMEOUT;
     private ResponseType mResponseType = ResponseType.RESPONSE_TYPE_GSON;
-
-    public enum ResponseType {
-        RESPONSE_TYPE_GSON,
-        RESPONSE_TYPE_STRING,
-    }
 
     private RetrofitUtils() {
 
@@ -76,18 +68,18 @@ public class RetrofitUtils {
         mResponseType = responseType;
     }
 
-    public APIInterface getService(Context context) {
+    public WebService getService(Context context) {
         if (context == null) {
             return null;
         }
-        return buildRetrofitAdapter(context.getString(R.string.base_url), getOkHttpClient(context)).create(APIInterface.class);
+        return buildRetrofitAdapter(context.getString(R.string.base_url), getOkHttpClient(context)).create(WebService.class);
     }
 
-    public APIInterface getService(Context context, String url) {
+    public WebService getService(Context context, String url) {
         if (context == null || TextUtils.isEmpty(url)) {
             return null;
         }
-        return buildRetrofitAdapter(url, getOkHttpClient(context)).create(APIInterface.class);
+        return buildRetrofitAdapter(url, getOkHttpClient(context)).create(WebService.class);
     }
 
     public GenericResponse parseError(Context context, retrofit2.Response<?> response) {
@@ -212,6 +204,11 @@ public class RetrofitUtils {
             }
         });
         return httpBuilder.build();
+    }
+
+    public enum ResponseType {
+        RESPONSE_TYPE_GSON,
+        RESPONSE_TYPE_STRING,
     }
 
     private static class TLSSocketFactory extends SSLSocketFactory {

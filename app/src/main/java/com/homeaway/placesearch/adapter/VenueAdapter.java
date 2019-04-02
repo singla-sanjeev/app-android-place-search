@@ -131,6 +131,13 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
         return mVenueList.size();
     }
 
+    private String getDistance(double latitude, double longitude) {
+        float distance[] = new float[3];
+        Location.distanceBetween(mCenterOfSeattleLatitude, mCenterOfSeattleLongitude, latitude, longitude, distance);  //in meters
+        float distanceInMiles = (float) (distance[0] * 0.00062137);
+        return String.format("%.2f Miles", distanceInMiles);
+    }
+
     public class ViewHolder extends RecyclerView.ViewHolder {
 
         private TextView mNameTxtVw;
@@ -147,12 +154,5 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
             mFavIcon = itemView.findViewById(R.id.imgVwFavoriteIcon);
             mCatIcon = itemView.findViewById(R.id.imgViewCategoryIcon);
         }
-    }
-
-    private String getDistance(double latitude, double longitude) {
-        float distance[] = new float[3];
-        Location.distanceBetween(mCenterOfSeattleLatitude, mCenterOfSeattleLongitude, latitude, longitude, distance);  //in meters
-        float distanceInMiles = (float) (distance[0] * 0.00062137);
-        return String.format("%.2f Miles", distanceInMiles);
     }
 }

@@ -6,14 +6,11 @@ import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Query;
 
-public interface APIInterface {
+public interface WebService {
 
 
     /**
      * API to fetch venue using FourSquare APIs
-     *
-     *
-     *
      */
     @GET("venues/search")
     Call<VenueSearchResponse> venueSearch(@Query("client_id") String clientId,
@@ -21,5 +18,4 @@ public interface APIInterface {
                                           @Query("near") String near, @Query("query") String query,
                                           @Query("v") String version,
                                           @Query("limit") int limit);
-
 }

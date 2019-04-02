@@ -49,12 +49,14 @@ public class VenueMapActivity extends FragmentActivity implements OnMapReadyCall
         mMap.setOnMarkerClickListener(this);
         MarkerOptions markerOptions;
         LatLng latLng;
-        for (Venue venue : mVenueList) {
-            latLng = new LatLng(venue.getLocation().getLat(), venue.getLocation().getLng());
-            markerOptions = new MarkerOptions().position(latLng);
-            markerOptions.title(venue.getName());
-            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_pin));
-            mMap.addMarker(markerOptions);
+        if (mVenueList != null && mVenueList.size() > 0) {
+            for (Venue venue : mVenueList) {
+                latLng = new LatLng(venue.getLocation().getLat(), venue.getLocation().getLng());
+                markerOptions = new MarkerOptions().position(latLng);
+                markerOptions.title(venue.getName());
+                markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_pin));
+                mMap.addMarker(markerOptions);
+            }
         }
         latLng = new LatLng(Float.valueOf(getString(R.string.centre_of_seattle_latitude)), Float.valueOf(getString(R.string.centre_of_seattle_longitude)));
         CameraPosition cameraPosition = new CameraPosition.Builder().target(latLng)

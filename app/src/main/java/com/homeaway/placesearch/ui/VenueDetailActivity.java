@@ -79,13 +79,18 @@ public class VenueDetailActivity extends AppCompatActivity implements OnMapReady
         if (mMap == null) {
             return;
         }
-        MarkerOptions markerOptions;
-        LatLng latLng;
-
-        latLng = new LatLng(mVenue.getLocation().getLat(), mVenue.getLocation().getLng());
-        markerOptions = new MarkerOptions().position(latLng);
-        markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_pin));
-        mMap.addMarker(markerOptions);
+        MarkerOptions markerOptions = null;
+        LatLng latLng = null;
+        if (mVenue != null) {
+            latLng = new LatLng(mVenue.getLocation().getLat(), mVenue.getLocation().getLng());
+        }
+        if (latLng != null) {
+            markerOptions = new MarkerOptions().position(latLng);
+        }
+        if (markerOptions != null) {
+            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_pin));
+            mMap.addMarker(markerOptions);
+        }
 
         latLng = new LatLng(Float.valueOf(getString(R.string.centre_of_seattle_latitude)),
                 Float.valueOf(getString(R.string.centre_of_seattle_longitude)));
