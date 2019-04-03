@@ -18,10 +18,6 @@ public class LogUtils {
         EXIT_TAG = " >>>>>>>>";
     }
 
-    enum LogLevel {
-        LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_INFO, LOG_LEVEL_DEBUG, LOG_LEVEL_VERBOSE
-    }
-
     public static String makeLogTag(String str) {
         if (str.length() > MAX_LOG_TAG_LENGTH - LOG_PREFIX_LENGTH) {
             return LOG_PREFIX + str.substring(0, MAX_LOG_TAG_LENGTH - LOG_PREFIX_LENGTH - 1);
@@ -167,5 +163,9 @@ public class LogUtils {
      */
     public static final void error(String tag, Throwable cause) {
         error(tag, cause.toString());
+    }
+
+    enum LogLevel {
+        LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_INFO, LOG_LEVEL_DEBUG, LOG_LEVEL_VERBOSE
     }
 }

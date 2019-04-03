@@ -1,14 +1,181 @@
-<?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".ui.VenueDetailFragment">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <data>
+
+        <variable
+            name="name"
+            type="String" />
+
+        <variable
+            name="category"
+            type="com.homeaway.placesearch.model.Category" />
+
+        <import type="java.util.ArrayList" />
+
+        <variable
+            name="formattedAddress"
+            type="ArrayList&lt;String&gt;" />
+
+        <variable
+            name="url"
+            type="String" />
+
+        <variable
+            name="distance"
+            type="String" />
+    </data>
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:fitsSystemWindows="true"
+        tools:context=".ui.MainActivity"
+        tools:ignore="MergeRootFrame">
 
-</FrameLayout>
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/app_bar"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/app_bar_height"
+            android:fitsSystemWindows="true"
+            android:theme="@style/AppTheme.AppBarOverlay">
+
+            <com.google.android.material.appbar.CollapsingToolbarLayout
+                android:id="@+id/toolbar_layout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fitsSystemWindows="true"
+                app:collapsedTitleTextAppearance="@style/CollapsedAppBar"
+                app:contentScrim="?attr/colorPrimary"
+                app:expandedTitleTextAppearance="@style/ExpandedAppBar"
+                app:layout_scrollFlags="scroll|exitUntilCollapsed"
+                app:title="@string/title_venue_detail"
+                app:toolbarId="@+id/toolbar">
+
+                <fragment
+                    android:id="@+id/googleMap"
+                    android:name="com.google.android.gms.maps.SupportMapFragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:layout_collapseMode="parallax"
+                    app:layout_collapseParallaxMultiplier="0.7"
+                    tools:context=".ui.MainActivity" />
+
+                <androidx.appcompat.widget.Toolbar
+                    android:id="@+id/detail_toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    app:layout_collapseMode="pin"
+                    app:popupTheme="@style/AppTheme.PopupOverlay" />
+            </com.google.android.material.appbar.CollapsingToolbarLayout>
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/venue_detail_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#ffffff"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp">
+
+                <TextView
+                    android:id="@+id/txtVwName"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:text="@{name}"
+                    android:textColor="#000000"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/txtVwAddress"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:text="@{formattedAddress.get(0)}"
+                    android:textColor="#737373"
+                    android:textSize="16sp"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/txtVwName" />
+
+                <ImageView
+                    android:id="@+id/imgViewCategoryIcon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:contentDescription="@string/title_venue_detail"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/ic_category_placeholder"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/txtVwAddress" />
+
+                <TextView
+                    android:id="@+id/txtVwCategory"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginEnd="15dp"
+                    android:text="@{category.name}"
+                    android:textColor="#737373"
+                    android:textSize="16sp"
+                    app:layout_constraintLeft_toRightOf="@id/imgViewCategoryIcon"
+                    app:layout_constraintTop_toBottomOf="@id/txtVwAddress" />
+
+                <TextView
+                    android:id="@+id/txtVwDistance"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:text="@{distance}"
+                    android:textColor="#737373"
+                    android:textSize="16sp"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/imgViewCategoryIcon" />
+
+                <TextView
+                    android:id="@+id/txtVwLink"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:autoLink="web"
+                    android:linksClickable="true"
+                    android:text="@{url}"
+                    android:textColor="#737373"
+                    android:textSize="16sp"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/txtVwDistance" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="25dp"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/txtVwLink" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.core.widget.NestedScrollView>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/fab_margin"
+            app:backgroundTint="@color/colorPrimary"
+            app:layout_anchor="@+id/app_bar"
+            app:layout_anchorGravity="bottom|end"
+            app:srcCompat="@drawable/ic_favorite_border" />
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+</layout>

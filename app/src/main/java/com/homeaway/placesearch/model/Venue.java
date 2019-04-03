@@ -1,15 +1,11 @@
-
 package com.homeaway.placesearch.model;
-
-import android.os.Parcel;
-import android.os.Parcelable;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-public class Venue implements Parcelable {
+public class Venue {
 
     @SerializedName("id")
     @Expose
@@ -32,17 +28,10 @@ public class Venue implements Parcelable {
     @SerializedName("venuePage")
     @Expose
     private VenuePage venuePage;
-    public static final Creator<Venue> CREATOR = new Creator<Venue>() {
-        @Override
-        public Venue createFromParcel(Parcel source) {
-            return new Venue(source);
-        }
-
-        @Override
-        public Venue[] newArray(int size) {
-            return new Venue[size];
-        }
-    };
+    @SerializedName("url")
+    @Expose
+    private String url;
+    private boolean favorite;
 
     public String getId() {
         return id;
@@ -100,22 +89,12 @@ public class Venue implements Parcelable {
         this.venuePage = venuePage;
     }
 
-    @SerializedName("favorite")
-    @Expose
-    private boolean favorite;
-
-    protected Venue(Parcel in) {
-        this.id = in.readString();
-        this.name = in.readString();
-        this.location = in.readParcelable(Location.class.getClassLoader());
-        this.categories = in.createTypedArrayList(Category.CREATOR);
-        this.referralId = in.readString();
-        this.hasPerk = in.readByte() != 0;
-        this.venuePage = in.readParcelable(VenuePage.class.getClassLoader());
-        this.favorite = in.readByte() != 0;
+    public String getUrl() {
+        return url;
     }
 
-    public Venue() {
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public boolean isFavorite() {
@@ -126,20 +105,4 @@ public class Venue implements Parcelable {
         this.favorite = favorite;
     }
 
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(this.id);
-        dest.writeString(this.name);
-        dest.writeParcelable(this.location, flags);
-        dest.writeTypedList(this.categories);
-        dest.writeString(this.referralId);
-        dest.writeByte(this.hasPerk ? (byte) 1 : (byte) 0);
-        dest.writeParcelable(this.venuePage, flags);
-        dest.writeByte(this.favorite ? (byte) 1 : (byte) 0);
-    }
 }

@@ -9,12 +9,10 @@ import com.google.gson.GsonBuilder;
 import com.homeaway.placesearch.BuildConfig;
 import com.homeaway.placesearch.R;
 import com.homeaway.placesearch.WebService;
-import com.homeaway.placesearch.model.GenericResponse;
 import com.jakewharton.picasso.OkHttp3Downloader;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -33,9 +31,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import okhttp3.OkHttpClient;
-import okhttp3.ResponseBody;
 import okhttp3.logging.HttpLoggingInterceptor;
-import retrofit2.Converter;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -80,20 +76,6 @@ public class RetrofitUtils {
             return null;
         }
         return buildRetrofitAdapter(url, getOkHttpClient(context)).create(WebService.class);
-    }
-
-    public GenericResponse parseError(Context context, retrofit2.Response<?> response) {
-        Converter<ResponseBody, GenericResponse> converter = buildRetrofitAdapter(context.getString(R.string.base_url), getOkHttpClient(context))
-                .responseBodyConverter(GenericResponse.class, new Annotation[0]);
-
-        GenericResponse genericResponse;
-
-        try {
-            genericResponse = converter.convert(response.errorBody());
-        } catch (IOException e) {
-            return new GenericResponse();
-        }
-        return genericResponse;
     }
 
     public Picasso getPicassoImageDownloader(Context context) {

@@ -25,11 +25,11 @@ public class VenueListViewModel extends ViewModel {
         return this.mVenueList;
     }
 
-    public void selectVenueId(Venue venue) {
-        mVenue.setValue(venue);
-    }
-
     public LiveData<Venue> getSelectedVenue() {
         return mVenue;
+    }
+
+    public void setSelectedVenue(Venue venue) {
+        mVenue.setValue(venue);
     }
 }

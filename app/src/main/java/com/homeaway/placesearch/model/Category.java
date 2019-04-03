@@ -1,13 +1,9 @@
-
 package com.homeaway.placesearch.model;
-
-import android.os.Parcel;
-import android.os.Parcelable;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class Category implements Parcelable {
+public class Category {
 
     @SerializedName("id")
     @Expose
@@ -75,43 +71,4 @@ public class Category implements Parcelable {
     public void setPrimary(boolean primary) {
         this.primary = primary;
     }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(this.id);
-        dest.writeString(this.name);
-        dest.writeString(this.pluralName);
-        dest.writeString(this.shortName);
-        dest.writeParcelable(this.icon, flags);
-        dest.writeByte(this.primary ? (byte) 1 : (byte) 0);
-    }
-
-    public Category() {
-    }
-
-    protected Category(Parcel in) {
-        this.id = in.readString();
-        this.name = in.readString();
-        this.pluralName = in.readString();
-        this.shortName = in.readString();
-        this.icon = in.readParcelable(Icon.class.getClassLoader());
-        this.primary = in.readByte() != 0;
-    }
-
-    public static final Parcelable.Creator<Category> CREATOR = new Parcelable.Creator<Category>() {
-        @Override
-        public Category createFromParcel(Parcel source) {
-            return new Category(source);
-        }
-
-        @Override
-        public Category[] newArray(int size) {
-            return new Category[size];
-        }
-    };
 }

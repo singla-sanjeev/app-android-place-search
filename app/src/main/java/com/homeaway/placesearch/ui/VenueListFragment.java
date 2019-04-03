@@ -2,11 +2,7 @@ package com.homeaway.placesearch.ui;
 
 import android.app.Activity;
 import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.os.Handler;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,17 +32,11 @@ import androidx.recyclerview.widget.RecyclerView;
 public class VenueListFragment extends Fragment {
     private static final String TAG = LogUtils.makeLogTag(VenueListFragment.class);
 
-    private static final long sDelayInMillSeconds = 200;
-    public static Handler sHandler;
-    public static Runnable sRunnable;
-    public ArrayList<Venue> mVenueList = new ArrayList<>();
-    private RecyclerView mRecyclerView;
+    private ArrayList<Venue> mVenueList = new ArrayList<>();
     private VenueAdapter mAdapter;
-    private ViewModelFactory mViewModelFactory;
     private Map<String, Venue> mFavoriteMap;
-    private VenueListViewModel mVenueListViewModel;
     private Activity mActivity;
-    private OnVenueListItemListener mCallback;
+    private OnFragmentInteractionListener mListener;
 
     public static VenueListFragment newInstance() {
         return new VenueListFragment();
@@ -56,13 +46,18 @@ public class VenueListFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         mActivity = (Activity) context;
+        if (context instanceof VenueMapFragment.OnFragmentInteractionListener) {
+            mListener = (VenueListFragment.OnFragmentInteractionListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         retrieveFavoriteListFromSharedPreference();
-        mAdapter = new VenueAdapter(mActivity, mVenueList, mFavoriteMap);
     }
 
     @Override
@@ -70,23 +65,24 @@ public class VenueListFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_venue_list, container, false);
 
-        mRecyclerView = view.findViewById(R.id.venueListRecyclerVw);
-        mRecyclerView.setAdapter(mAdapter);
-
-        mViewModelFactory = Injection.provideViewModelFactory(mActivity);
-        mVenueListViewModel = ViewModelProviders.of(this, mViewModelFactory).get(VenueListViewModel.class);
-        mVenueListViewModel.init(null);
-        mVenueListViewModel.getVenueList().observe((MainActivity) mActivity, new Observer<List<Venue>>() {
-            @Override
-            public void onChanged(List<Venue> venues) {
-                if (null != venues && venues.size() > 0) {
-                    mVenueList.clear();
-                    mVenueList.addAll(venues);
-                    mAdapter.notifyDataSetChanged();
-                    mCallback.onVenueListChanged(mVenueList);
+        ViewModelFactory mViewModelFactory = Injection.provideViewModelFactory(mActivity);
+        VenueListViewModel venueListViewModel = ViewModelProviders.of((MainActivity) mActivity, mViewModelFactory).get(VenueListViewModel.class);
+        if (venueListViewModel != null) {
+            venueListViewModel.getVenueList().observe(this, new Observer<List<Venue>>() {
+                @Override
+                public void onChanged(List<Venue> venues) {
+                    if (null != venues && venues.size() > 0) {
+                        mVenueList.clear();
+                        mVenueList.addAll(venues);
+                        mAdapter.notifyDataSetChanged();
+                    }
                 }
-            }
-        });
+            });
+        }
+
+        RecyclerView recyclerView = view.findViewById(R.id.venueListRecyclerVw);
+        mAdapter = new VenueAdapter(mActivity, mVenueList, mFavoriteMap, mListener);
+        recyclerView.setAdapter(mAdapter);
         return view;
     }
 
@@ -103,33 +99,19 @@ public class VenueListFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        if (sHandler != null && sRunnable != null) {
-            sHandler.removeCallbacks(sRunnable);
-        }
     }
 
     @Override
     public void onDestroyView() {
-        mVenueList.clear();
-        mVenueList = null;
-        if (sHandler != null && sRunnable != null) {
-            sHandler.removeCallbacks(sRunnable);
-            sHandler = null;
-            sRunnable = null;
-        }
         super.onDestroyView();
     }
 
     @Override
     public void onDestroy() {
+        mVenueList.clear();
+        mVenueList = null;
         saveFavoriteListToSharedPreference();
         super.onDestroy();
-    }
-
-    public void onQueryTextChanged() {
-        if (sHandler != null && sRunnable != null) {
-            sHandler.removeCallbacks(sRunnable);
-        }
     }
 
     public void afterQueryTextChange(String query) {
@@ -137,43 +119,19 @@ public class VenueListFragment extends Fragment {
             mVenueList.clear();
             mAdapter.notifyDataSetChanged();
         }
-
-        if (!TextUtils.isEmpty(query) && query.length() >= 2) {
-            sHandler = new Handler();
-            sRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    if (isInternetAvailable(mActivity)) {
-                        mVenueListViewModel.init(query.toString());
-                    } else {
-                        LogUtils.info(TAG, "Looks like your internet connection is taking a nap!");
-                    }
-                }
-            };
-            sHandler.postDelayed(sRunnable, sDelayInMillSeconds);
-        }
-
     }
 
-    private boolean isInternetAvailable(Context context) {
-        boolean isConnected = false;
-
-        if (context == null) {
-            return isConnected;
+    public void updateFavorite(String id) {
+        if (mFavoriteMap != null) {
+            if (mFavoriteMap.containsKey(id)) {
+                mFavoriteMap.remove(id);
+            } else {
+                mFavoriteMap.put(id, null);
+            }
         }
-
-        ConnectivityManager connectivityManager = (ConnectivityManager) context
-                .getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        if (connectivityManager == null) {
-            return isConnected;
+        if (mAdapter != null) {
+            mAdapter.notifyDataSetChanged();
         }
-
-        NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
-
-        isConnected = activeNetwork != null && activeNetwork.isConnected();
-
-        return isConnected;
     }
 
     private void retrieveFavoriteListFromSharedPreference() {
@@ -200,14 +158,8 @@ public class VenueListFragment extends Fragment {
                 putStringSet(PreferenceUtils.FAVORITE_LIST, mFavoriteMap.keySet());
     }
 
-    public void setOnVenueListItemListener(OnVenueListItemListener callback) {
-        this.mCallback = callback;
-    }
-
     // This interface can be implemented by the Activity, parent Fragment
-    public interface OnVenueListItemListener {
+    public interface OnFragmentInteractionListener {
         public void onVenueSelected(Venue venue);
-
-        public void onVenueListChanged(List<Venue> venueList);
     }
 }

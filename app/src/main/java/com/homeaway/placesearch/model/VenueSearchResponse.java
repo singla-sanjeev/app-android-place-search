@@ -1,4 +1,3 @@
-
 package com.homeaway.placesearch.model;
 
 import com.google.gson.annotations.Expose;

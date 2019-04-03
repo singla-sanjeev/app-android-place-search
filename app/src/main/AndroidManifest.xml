@@ -27,15 +27,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ui.VenueDetailActivity"
-            android:label="@string/title_venue_detail"
-            android:screenOrientation="portrait"/>
-        <activity
-            android:name=".ui.VenueMapActivity"
-            android:label="@string/title_activity_maps"
-            android:screenOrientation="portrait"/>
-        <activity android:name=".ui.VenueSearchActivity" />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
