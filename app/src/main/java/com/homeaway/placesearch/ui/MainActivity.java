@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements TextWatcher,
         setSupportActionBar(mToolbar);
         mToolbar.setTitle(getTitle());
 
-        mFloatingActionButton = findViewById(R.id.fab);
+        mFloatingActionButton = findViewById(R.id.mapFab);
         mFloatingActionButton.setOnClickListener(view -> {
             hideKeyboard();
             loadVenueMapFragment();

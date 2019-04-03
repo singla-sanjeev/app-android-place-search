@@ -135,7 +135,7 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
 
     private void initViews() {
         if (mVenue != null) {
-            FloatingActionButton fab = mView.findViewById(R.id.fab);
+            FloatingActionButton fab = mView.findViewById(R.id.favoriteFab);
             fab.setOnClickListener(view -> {
                 favoriteClicked(view);
             });
