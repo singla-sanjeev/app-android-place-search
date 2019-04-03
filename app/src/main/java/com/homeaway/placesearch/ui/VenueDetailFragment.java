@@ -60,6 +60,7 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
     private Venue mVenue;
     private VenueListViewModel mVenueListViewModel;
     private FragmentVenueDetailBinding mFragmentVenueDetailBinding;
+    private FloatingActionButton mFavoriteFloatingActionButton;
     private Toolbar mToolbar;
     private OnFragmentInteractionListener mListener;
 
@@ -90,9 +91,13 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
                 R.layout.fragment_venue_detail, container, false);
         mView = mFragmentVenueDetailBinding.getRoot();
 
-        mToolbar = mView.findViewById(R.id.detail_toolbar);
+        mToolbar = mView.findViewById(R.id.detailToolbar);
         ((AppCompatActivity) mActivity).setSupportActionBar(mToolbar);
-
+        // Show the Up button in the action bar.
+        ActionBar actionBar = ((AppCompatActivity) mActivity).getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
         ViewModelFactory mViewModelFactory = Injection.provideViewModelFactory(mActivity);
         mVenueListViewModel = ViewModelProviders.of((MainActivity) mActivity, mViewModelFactory).get(VenueListViewModel.class);
         mVenueListViewModel.getSelectedVenue().observe(this, new Observer<Venue>() {
@@ -110,17 +115,11 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
             Point outSize = new Point();
             display.getSize(outSize);
 
-            AppBarLayout appBarLayout = mView.findViewById(R.id.app_bar);
+            AppBarLayout appBarLayout = mView.findViewById(R.id.venueDetailAppBar);
             CoordinatorLayout.LayoutParams layoutParams =
                     new CoordinatorLayout.LayoutParams(outSize.x, outSize.y / 2);
 
             appBarLayout.setLayoutParams(layoutParams);
-        }
-
-        // Show the Up button in the action bar.
-        ActionBar actionBar = ((AppCompatActivity) mActivity).getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -135,24 +134,24 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
 
     private void initViews() {
         if (mVenue != null) {
-            FloatingActionButton fab = mView.findViewById(R.id.favoriteFab);
-            fab.setOnClickListener(view -> {
-                favoriteClicked(view);
+            mFavoriteFloatingActionButton = mView.findViewById(R.id.favoriteFab);
+            mFavoriteFloatingActionButton.setOnClickListener(view -> {
+                favoriteClicked();
             });
             if (mVenue.isFavorite()) {
-                fab.setImageResource(R.drawable.ic_favorite);
+                mFavoriteFloatingActionButton.setImageResource(R.drawable.ic_favorite);
             } else {
-                fab.setImageResource(R.drawable.ic_favorite_border);
+                mFavoriteFloatingActionButton.setImageResource(R.drawable.ic_favorite_border);
             }
             if (!TextUtils.isEmpty(mVenue.getName())) {
-                mFragmentVenueDetailBinding.setName(mVenue.getName());
+                mFragmentVenueDetailBinding.setVenueName(mVenue.getName());
             }
             if (!TextUtils.isEmpty(mVenue.getUrl())) {
                 mFragmentVenueDetailBinding.setUrl(mVenue.getUrl());
             }
             if (mVenue.getCategories() != null && mVenue.getCategories().size() > 0) {
                 if (!TextUtils.isEmpty(mVenue.getCategories().get(0).getName())) {
-                    mFragmentVenueDetailBinding.setCategory(mVenue.getCategories().get(0));
+                    mFragmentVenueDetailBinding.setCategoryName(mVenue.getCategories().get(0).getName());
                 }
                 String iconUrl = mVenue.getCategories().get(0).getIcon().getPrefix().replace("\\", "") + "bg_64" +
                         mVenue.getCategories().get(0).getIcon().getSuffix();
@@ -227,14 +226,14 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
         }
     }
 
-    private void favoriteClicked(View view) {
+    private void favoriteClicked() {
         if (mVenue != null) {
             if (mVenue.isFavorite()) {
-                ((FloatingActionButton) view).setImageResource(R.drawable.ic_favorite_border);
                 mVenue.setFavorite(false);
+                mFavoriteFloatingActionButton.setImageResource(R.drawable.ic_favorite_border);
             } else {
-                ((FloatingActionButton) view).setImageResource(R.drawable.ic_favorite);
                 mVenue.setFavorite(true);
+                mFavoriteFloatingActionButton.setImageResource(R.drawable.ic_favorite);
             }
             mListener.onFavoriteIconClicked(mVenue.getId());
         }

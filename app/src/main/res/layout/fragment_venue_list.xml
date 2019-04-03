@@ -3,7 +3,40 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context=".ui.MainActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/venueListAppBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/venueListToolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:popupTheme="@style/AppTheme.PopupOverlay">
+
+            <EditText
+                android:id="@+id/searchPlaceEdtVw"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:drawableStart="@drawable/ic_search"
+                android:drawablePadding="14dp"
+                android:hint="@string/search_venue"
+                android:imeOptions="actionDone"
+                android:inputType="text"
+                android:textColor="#000000"
+                android:textColorHint="#737373"
+                android:textSize="18sp" />
+        </androidx.appcompat.widget.Toolbar>
+    </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/venueListRecyclerVw"
@@ -13,7 +46,17 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/venueListAppBar"
         tools:context=".ui.MainActivity"
         tools:listitem="@layout/venue_list_content" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/mapFab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/fab_margin"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:srcCompat="@android:drawable/ic_dialog_map" />
 </androidx.constraintlayout.widget.ConstraintLayout>

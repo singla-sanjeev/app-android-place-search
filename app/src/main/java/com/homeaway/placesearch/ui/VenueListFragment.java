@@ -3,10 +3,14 @@ package com.homeaway.placesearch.ui;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.homeaway.placesearch.Injection;
 import com.homeaway.placesearch.R;
 import com.homeaway.placesearch.VenueListViewModel;
@@ -29,7 +33,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.RecyclerView;
 
-public class VenueListFragment extends Fragment {
+public class VenueListFragment extends Fragment implements TextWatcher {
     private static final String TAG = LogUtils.makeLogTag(VenueListFragment.class);
 
     private ArrayList<Venue> mVenueList = new ArrayList<>();
@@ -37,6 +41,7 @@ public class VenueListFragment extends Fragment {
     private Map<String, Venue> mFavoriteMap;
     private Activity mActivity;
     private OnFragmentInteractionListener mListener;
+    private FloatingActionButton mFloatingActionButton;
 
     public static VenueListFragment newInstance() {
         return new VenueListFragment();
@@ -63,27 +68,36 @@ public class VenueListFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_venue_list, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_venue_list, container, false);
 
+        mFloatingActionButton = rootView.findViewById(R.id.mapFab);
+        mFloatingActionButton.setOnClickListener(view -> {
+            mListener.onMapFloatingActionButtonClicked();
+        });
+        mFloatingActionButton.hide();
+
+        EditText edtTxtVw = rootView.findViewById(R.id.searchPlaceEdtVw);
+        edtTxtVw.addTextChangedListener(this);
         ViewModelFactory mViewModelFactory = Injection.provideViewModelFactory(mActivity);
         VenueListViewModel venueListViewModel = ViewModelProviders.of((MainActivity) mActivity, mViewModelFactory).get(VenueListViewModel.class);
-        if (venueListViewModel != null) {
-            venueListViewModel.getVenueList().observe(this, new Observer<List<Venue>>() {
-                @Override
-                public void onChanged(List<Venue> venues) {
-                    if (null != venues && venues.size() > 0) {
-                        mVenueList.clear();
-                        mVenueList.addAll(venues);
-                        mAdapter.notifyDataSetChanged();
+        venueListViewModel.getVenueList().observe(this, new Observer<List<Venue>>() {
+            @Override
+            public void onChanged(List<Venue> venues) {
+                if (null != venues && venues.size() > 0) {
+                    mVenueList.clear();
+                    mVenueList.addAll(venues);
+                    mAdapter.notifyDataSetChanged();
+                    if (mFloatingActionButton != null) {
+                        mFloatingActionButton.show();
                     }
                 }
-            });
-        }
+            }
+        });
 
-        RecyclerView recyclerView = view.findViewById(R.id.venueListRecyclerVw);
+        RecyclerView recyclerView = rootView.findViewById(R.id.venueListRecyclerVw);
         mAdapter = new VenueAdapter(mActivity, mVenueList, mFavoriteMap, mListener);
         recyclerView.setAdapter(mAdapter);
-        return view;
+        return rootView;
     }
 
     @Override
@@ -114,12 +128,6 @@ public class VenueListFragment extends Fragment {
         super.onDestroy();
     }
 
-    public void afterQueryTextChange(String query) {
-        if (mVenueList != null && mVenueList.size() > 0 && query.length() <= 1) {
-            mVenueList.clear();
-            mAdapter.notifyDataSetChanged();
-        }
-    }
 
     public void updateFavorite(String id) {
         if (mFavoriteMap != null) {
@@ -158,8 +166,36 @@ public class VenueListFragment extends Fragment {
                 putStringSet(PreferenceUtils.FAVORITE_LIST, mFavoriteMap.keySet());
     }
 
+    @Override
+    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+    }
+
+    @Override
+    public void onTextChanged(CharSequence s, int start, int before, int count) {
+        mListener.onSearchTextChanged();
+    }
+
+    @Override
+    public void afterTextChanged(Editable editable) {
+        if (mFloatingActionButton != null && mFloatingActionButton.isOrWillBeShown()) {
+            mFloatingActionButton.hide();
+        }
+        if (mVenueList != null && mVenueList.size() > 0 && editable.length() <= 1) {
+            mVenueList.clear();
+            mAdapter.notifyDataSetChanged();
+        }
+        mListener.afterSearchTextChanged(editable.toString());
+    }
+
     // This interface can be implemented by the Activity, parent Fragment
     public interface OnFragmentInteractionListener {
-        public void onVenueSelected(Venue venue);
+        void onVenueSelected(Venue venue);
+
+        void onSearchTextChanged();
+
+        void afterSearchTextChanged(String query);
+
+        void onMapFloatingActionButtonClicked();
     }
 }

@@ -1,20 +1,15 @@
 package com.homeaway.placesearch.ui;
 
-
 import android.app.Activity;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
-import android.text.Editable;
 import android.text.TextUtils;
-import android.text.TextWatcher;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.homeaway.placesearch.Injection;
 import com.homeaway.placesearch.R;
 import com.homeaway.placesearch.VenueListViewModel;
@@ -23,14 +18,12 @@ import com.homeaway.placesearch.model.Venue;
 import com.homeaway.placesearch.utils.LogUtils;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProviders;
 
-public class MainActivity extends AppCompatActivity implements TextWatcher,
-        VenueListFragment.OnFragmentInteractionListener,
+public class MainActivity extends AppCompatActivity implements VenueListFragment.OnFragmentInteractionListener,
         VenueMapFragment.OnFragmentInteractionListener,
         VenueDetailFragment.OnFragmentInteractionListener {
     private static final String TAG = LogUtils.makeLogTag(MainActivity.class);
@@ -40,38 +33,18 @@ public class MainActivity extends AppCompatActivity implements TextWatcher,
     private static Handler sHandler;
     private static Runnable sRunnable;
     private VenueListFragment mVenueListFragment;
-    private FloatingActionButton mFloatingActionButton;
     private VenueListViewModel mVenueListViewModel;
-    private Toolbar mToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mToolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(mToolbar);
-        mToolbar.setTitle(getTitle());
-
-        mFloatingActionButton = findViewById(R.id.mapFab);
-        mFloatingActionButton.setOnClickListener(view -> {
-            hideKeyboard();
-            loadVenueMapFragment();
-        });
-        mFloatingActionButton.hide();
-
-        EditText edtTxtVw = findViewById(R.id.edtVwSearchPlace);
-        edtTxtVw.addTextChangedListener(this);
-
         ViewModelFactory mViewModelFactory = Injection.provideViewModelFactory(this);
         mVenueListViewModel = ViewModelProviders.of(this, mViewModelFactory).get(VenueListViewModel.class);
         mVenueListViewModel.init(null);
         mVenueListViewModel.getVenueList().observe(this, venueList -> {
-            if (null != venueList && venueList.size() > 0) {
-                if (mFloatingActionButton != null) {
-                    mFloatingActionButton.show();
-                }
-            }
+            LogUtils.info(TAG, "Venue List Observer");
         });
         loadVenueListFragment();
     }
@@ -100,49 +73,8 @@ public class MainActivity extends AppCompatActivity implements TextWatcher,
     }
 
     @Override
-    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-    }
-
-    @Override
-    public void onTextChanged(CharSequence s, int start, int before, int count) {
-        if (sHandler != null && sRunnable != null) {
-            sHandler.removeCallbacks(sRunnable);
-        }
-    }
-
-    @Override
-    public void afterTextChanged(final Editable place) {
-        if (mFloatingActionButton != null && mFloatingActionButton.isOrWillBeShown()) {
-            mFloatingActionButton.hide();
-        }
-        if (mVenueListFragment != null) {
-            mVenueListFragment.afterQueryTextChange(place.toString());
-        }
-
-        if (!TextUtils.isEmpty(place) && place.length() >= 2) {
-            sHandler = new Handler();
-            sRunnable = () -> {
-                if (isInternetAvailable(MainActivity.this)) {
-                    mVenueListViewModel.init(place.toString());
-                } else {
-                    LogUtils.info(TAG, "Looks like your internet connection is taking a nap!");
-                }
-            };
-            sHandler.postDelayed(sRunnable, sDelayInMillSeconds);
-        }
-    }
-
-    @Override
     public void onBackPressed() {
         if (getSupportFragmentManager().getBackStackEntryCount() > 1) {
-            if (getSupportFragmentManager().getBackStackEntryCount() == 2) {
-                if (mToolbar != null) {
-                    mToolbar.setVisibility(View.VISIBLE);
-                }
-                if (mFloatingActionButton != null) {
-                    mFloatingActionButton.show();
-                }
-            }
             getSupportFragmentManager().popBackStack();
         } else {
             super.onBackPressed();
@@ -152,14 +84,9 @@ public class MainActivity extends AppCompatActivity implements TextWatcher,
     }
 
     private void loadVenueMapFragment() {
+        hideKeyboard();
         VenueMapFragment venueMapFragment = VenueMapFragment.newInstance();
         loadFragment(venueMapFragment, TAG_MAP);
-        if (mToolbar != null) {
-            mToolbar.setVisibility(View.GONE);
-        }
-        if (mFloatingActionButton != null && mFloatingActionButton.isOrWillBeShown()) {
-            mFloatingActionButton.hide();
-        }
     }
 
     private void loadVenueListFragment() {
@@ -170,12 +97,6 @@ public class MainActivity extends AppCompatActivity implements TextWatcher,
     private void loadVenueDetailFragment() {
         VenueDetailFragment venueDetailFragment = VenueDetailFragment.newInstance();
         loadFragment(venueDetailFragment, TAG_DETAIL);
-        if (mFloatingActionButton != null && mFloatingActionButton.isOrWillBeShown()) {
-            mFloatingActionButton.hide();
-        }
-        if (mToolbar != null) {
-            mToolbar.setVisibility(View.GONE);
-        }
     }
 
     private void loadFragment(Fragment fragment, String tag) {
@@ -205,6 +126,33 @@ public class MainActivity extends AppCompatActivity implements TextWatcher,
         hideKeyboard();
         mVenueListViewModel.setSelectedVenue(venue);
         loadVenueDetailFragment();
+    }
+
+    @Override
+    public void onSearchTextChanged() {
+        if (sHandler != null && sRunnable != null) {
+            sHandler.removeCallbacks(sRunnable);
+        }
+    }
+
+    @Override
+    public void afterSearchTextChanged(String query) {
+        if (!TextUtils.isEmpty(query) && query.length() >= 2) {
+            sHandler = new Handler();
+            sRunnable = () -> {
+                if (isInternetAvailable(MainActivity.this)) {
+                    mVenueListViewModel.init(query.toString());
+                } else {
+                    LogUtils.info(TAG, "Looks like your internet connection is taking a nap!");
+                }
+            };
+            sHandler.postDelayed(sRunnable, sDelayInMillSeconds);
+        }
+    }
+
+    @Override
+    public void onMapFloatingActionButtonClicked() {
+        loadVenueMapFragment();
     }
 
     @Override
