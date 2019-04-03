@@ -3,7 +3,6 @@ package com.homeaway.placesearch.ui;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Point;
-import android.location.Location;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Display;
@@ -28,14 +27,13 @@ import com.homeaway.placesearch.VenueListViewModel;
 import com.homeaway.placesearch.ViewModelFactory;
 import com.homeaway.placesearch.databinding.FragmentVenueDetailBinding;
 import com.homeaway.placesearch.model.Venue;
+import com.homeaway.placesearch.utils.AppUtils;
 import com.homeaway.placesearch.utils.LogUtils;
-import com.homeaway.placesearch.utils.RetrofitUtils;
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.Locale;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -61,7 +59,6 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
     private GoogleMap mMap;
     private Venue mVenue;
     private VenueListViewModel mVenueListViewModel;
-    private SupportMapFragment mSupportMapFragment;
     private FragmentVenueDetailBinding mFragmentVenueDetailBinding;
     private Toolbar mToolbar;
     private OnFragmentInteractionListener mListener;
@@ -87,7 +84,7 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         mFragmentVenueDetailBinding = DataBindingUtil.inflate(inflater,
                 R.layout.fragment_venue_detail, container, false);
@@ -102,7 +99,7 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
             @Override
             public void onChanged(Venue venue) {
                 mVenue = venue;
-                initDetailsViews();
+                initViews();
             }
         });
 
@@ -128,15 +125,15 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         FragmentManager fragmentManager = getChildFragmentManager();
-        mSupportMapFragment = (SupportMapFragment) fragmentManager.findFragmentById(R.id.googleMap);
-        if (mSupportMapFragment != null) {
-            mSupportMapFragment.getMapAsync(this);
+        SupportMapFragment supportMapFragment = (SupportMapFragment) fragmentManager.findFragmentById(R.id.googleMap);
+        if (supportMapFragment != null) {
+            supportMapFragment.getMapAsync(this);
         }
 
         return mView;
     }
 
-    private void initDetailsViews() {
+    private void initViews() {
         if (mVenue != null) {
             FloatingActionButton fab = mView.findViewById(R.id.fab);
             fab.setOnClickListener(view -> {
@@ -160,13 +157,17 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
                 String iconUrl = mVenue.getCategories().get(0).getIcon().getPrefix().replace("\\", "") + "bg_64" +
                         mVenue.getCategories().get(0).getIcon().getSuffix();
                 ImageView categoryIcon = mView.findViewById(R.id.imgViewCategoryIcon);
-                loadCategoryImage(iconUrl, categoryIcon);
+                AppUtils.getInstance().loadCategoryImage(mActivity, iconUrl, categoryIcon);
             }
             if (mVenue.getLocation() != null && mVenue.getLocation().getFormattedAddress().size() > 0) {
                 mFragmentVenueDetailBinding.setFormattedAddress((ArrayList<String>) mVenue.getLocation().getFormattedAddress());
             }
             if (mVenue.getLocation() != null) {
-                mFragmentVenueDetailBinding.setDistance(String.format(Locale.getDefault(), mActivity.getString(R.string.distance), getDistance(mVenue.getLocation().getLat(), mVenue.getLocation().getLng())));
+                double centerOfSeattleLatitude = Double.parseDouble(mActivity.getResources().getString(R.string.centre_of_seattle_latitude));
+                double centerOfSeattleLongitude = Double.parseDouble(mActivity.getResources().getString(R.string.centre_of_seattle_longitude));
+                mFragmentVenueDetailBinding.setDistance(String.format(Locale.getDefault(), mActivity.getString(R.string.distance),
+                        AppUtils.getInstance().getDistance(centerOfSeattleLatitude, centerOfSeattleLongitude,
+                                mVenue.getLocation().getLat(), mVenue.getLocation().getLng())));
             }
         }
     }
@@ -224,33 +225,6 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
         if (mMap != null) {
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         }
-    }
-
-    private void loadCategoryImage(String imageUrl, ImageView imageView) {
-        Picasso picasso = RetrofitUtils.getInstance().getPicassoImageDownloader(mActivity);
-        picasso.load(imageUrl).into(imageView, new Callback() {
-
-            @Override
-            public void onSuccess() {
-                imageView.setVisibility(View.VISIBLE);
-                LogUtils.checkIf(TAG, "loadCategoryImage: onSuccess");
-            }
-
-            @Override
-            public void onError() {
-                imageView.setVisibility(View.VISIBLE);
-                LogUtils.checkIf(TAG, "loadCategoryImage: onError");
-            }
-        });
-    }
-
-    private String getDistance(double latitude, double longitude) {
-        float distance[] = new float[3];
-        double centerOfSeattleLatitude = Double.parseDouble(mActivity.getResources().getString(R.string.centre_of_seattle_latitude));
-        double centerOfSeattleLongitude = Double.parseDouble(mActivity.getResources().getString(R.string.centre_of_seattle_longitude));
-        Location.distanceBetween(centerOfSeattleLatitude, centerOfSeattleLongitude, latitude, longitude, distance);  //in meters
-        float distanceInMiles = (float) (distance[0] * 0.00062137);
-        return String.format(Locale.getDefault(), "%.2f Miles", distanceInMiles);
     }
 
     private void favoriteClicked(View view) {
