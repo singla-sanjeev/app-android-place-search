@@ -22,17 +22,32 @@ import com.homeaway.placesearch.utils.PreferenceUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.RecyclerView;
 
+/**
+ * {@link VenueListFragment} class provides list of venue list item based on searching criteria.
+ * This is the main screen of the app which display a search input, and using typeahead search
+ * against the Foursquare API. Search results are displayed list format. Each list item is providing
+ * the name of the place (e.g., Flitch Coffee), the category of the place (e.g., Coffee Shop),
+ * the icon from the response, the distance from the center of Seattle (47.6062° N, 122.3321° W)
+ * to the place, and whether the place has been favorited by the user.
+ * Clicking a list item is launching the details screen for that place.
+ * When a search results are available, the main screen shows a Floating Action Button.
+ * Clicking the Floating Action Button is launching a full-screen map {@VenueMapFragment}
+ * with a pin for every search result.
+ * Activities that contain this fragment must implement the
+ * {@link VenueMapFragment.OnFragmentInteractionListener} interface
+ * to handle interaction events.
+ * Use the {@link VenueMapFragment#newInstance} factory method to
+ * create an instance of this fragment.
+ */
 public class VenueListFragment extends Fragment implements TextWatcher {
     private static final String TAG = LogUtils.makeLogTag(VenueListFragment.class);
 
@@ -71,25 +86,22 @@ public class VenueListFragment extends Fragment implements TextWatcher {
         View rootView = inflater.inflate(R.layout.fragment_venue_list, container, false);
 
         mFloatingActionButton = rootView.findViewById(R.id.mapFab);
-        mFloatingActionButton.setOnClickListener(view -> {
-            mListener.onMapFloatingActionButtonClicked();
-        });
+        mFloatingActionButton.setOnClickListener(view ->
+                mListener.onMapFloatingActionButtonClicked());
         mFloatingActionButton.hide();
 
         EditText edtTxtVw = rootView.findViewById(R.id.searchPlaceEdtVw);
         edtTxtVw.addTextChangedListener(this);
-        ViewModelFactory mViewModelFactory = Injection.provideViewModelFactory(mActivity);
-        VenueListViewModel venueListViewModel = ViewModelProviders.of((MainActivity) mActivity, mViewModelFactory).get(VenueListViewModel.class);
-        venueListViewModel.getVenueList().observe(this, new Observer<List<Venue>>() {
-            @Override
-            public void onChanged(List<Venue> venues) {
-                if (null != venues && venues.size() > 0) {
-                    mVenueList.clear();
-                    mVenueList.addAll(venues);
-                    mAdapter.notifyDataSetChanged();
-                    if (mFloatingActionButton != null) {
-                        mFloatingActionButton.show();
-                    }
+        ViewModelFactory mViewModelFactory = Injection.provideViewModelFactory();
+        VenueListViewModel venueListViewModel = ViewModelProviders.of((MainActivity) mActivity,
+                mViewModelFactory).get(VenueListViewModel.class);
+        venueListViewModel.getVenueList().observe(this, venues -> {
+            if (null != venues && venues.size() > 0) {
+                mVenueList.clear();
+                mVenueList.addAll(venues);
+                mAdapter.notifyDataSetChanged();
+                if (mFloatingActionButton != null) {
+                    mFloatingActionButton.show();
                 }
             }
         });
@@ -128,7 +140,12 @@ public class VenueListFragment extends Fragment implements TextWatcher {
         super.onDestroy();
     }
 
-
+    /**
+     * Update favorite map from VenueDetailFragment using this method and notify adapter to update
+     * the UI after updating favorite.
+     *
+     * @param id : Venue id
+     */
     public void updateFavorite(String id) {
         if (mFavoriteMap != null) {
             if (mFavoriteMap.containsKey(id)) {
@@ -142,11 +159,15 @@ public class VenueListFragment extends Fragment implements TextWatcher {
         }
     }
 
+    /**
+     * Fetch/Retrieve saved favorite items from preference and load it in favorite map
+     */
     private void retrieveFavoriteListFromSharedPreference() {
         mFavoriteMap = new HashMap<>();
         Set<String> favoriteSet = null;
         try {
-            favoriteSet = PreferenceUtils.getInstance(mActivity).getStringSet(PreferenceUtils.FAVORITE_LIST);
+            favoriteSet = PreferenceUtils.getInstance(mActivity).
+                    getStringSet(PreferenceUtils.FAVORITE_LIST);
         } catch (Exception e) {
             LogUtils.error(TAG, e.toString());
         }
@@ -157,6 +178,9 @@ public class VenueListFragment extends Fragment implements TextWatcher {
         }
     }
 
+    /**
+     * Save selected favorite list item to preference
+     */
     private void saveFavoriteListToSharedPreference() {
         assert mFavoriteMap != null;
         if (mFavoriteMap.size() <= 0) {
@@ -190,12 +214,16 @@ public class VenueListFragment extends Fragment implements TextWatcher {
 
     // This interface can be implemented by the Activity, parent Fragment
     public interface OnFragmentInteractionListener {
+        //Venue Item Selected from the list of venue items
         void onVenueSelected(Venue venue);
 
+        //Search text change listener
         void onSearchTextChanged();
 
+        //After search text changed listener
         void afterSearchTextChanged(String query);
 
+        //Listener for floating action button click on Venue list screen
         void onMapFloatingActionButtonClicked();
     }
 }

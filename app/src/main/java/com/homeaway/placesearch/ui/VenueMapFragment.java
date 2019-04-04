@@ -25,27 +25,31 @@ import com.homeaway.placesearch.model.Venue;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
 /**
- * A simple {@link Fragment} subclass.
+ * {@link VenueMapFragment} class launch a full screen Google map screen with a pin
+ * for every search result. Clicking a pin is showing the name of the place on the map,
+ * and clicking on name is opening venue details screen with details of that place.
  * Activities that contain this fragment must implement the
  * {@link VenueMapFragment.OnFragmentInteractionListener} interface
  * to handle interaction events.
  * Use the {@link VenueMapFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class VenueMapFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener {
-    public static final int MAP_ZOOM_LEVEL = 14; //8 Venues
+public class VenueMapFragment extends Fragment implements
+        OnMapReadyCallback,
+        GoogleMap.OnMarkerClickListener,
+        GoogleMap.OnInfoWindowClickListener {
+    private static final int MAP_ZOOM_LEVEL = 14; //8 Venues
     private Activity mActivity;
-    private GoogleMap mMap;
+    private GoogleMap mGoogleMap;
     private List<Venue> mVenueList = new ArrayList<>();
     private VenueListViewModel mVenueListViewModel;
-    private SupportMapFragment mSupportMapFragment;
-    private View mView;
 
     private OnFragmentInteractionListener mListener;
 
@@ -60,8 +64,7 @@ public class VenueMapFragment extends Fragment implements OnMapReadyCallback, Go
      * @return A new instance of fragment VenueMapFragment.
      */
     public static VenueMapFragment newInstance() {
-        VenueMapFragment fragment = new VenueMapFragment();
-        return fragment;
+        return new VenueMapFragment();
     }
 
     @Override
@@ -70,12 +73,12 @@ public class VenueMapFragment extends Fragment implements OnMapReadyCallback, Go
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        mView = inflater.inflate(R.layout.fragment_venue_map, container, false);
+        View mView = inflater.inflate(R.layout.fragment_venue_map, container, false);
 
-        ViewModelFactory mViewModelFactory = Injection.provideViewModelFactory(mActivity);
+        ViewModelFactory mViewModelFactory = Injection.provideViewModelFactory();
         mVenueListViewModel = ViewModelProviders.of((MainActivity) mActivity, mViewModelFactory).get(VenueListViewModel.class);
         mVenueListViewModel.getVenueList().observe(this, new Observer<List<Venue>>() {
             @Override
@@ -90,7 +93,7 @@ public class VenueMapFragment extends Fragment implements OnMapReadyCallback, Go
         ViewGroup rootViewGroup = mView.findViewById(R.id.mapVwFrmLyt);
         rootViewGroup.requestTransparentRegion(rootViewGroup);
         FragmentManager fragmentManager = getChildFragmentManager();
-        mSupportMapFragment = (SupportMapFragment) fragmentManager.findFragmentById(R.id.googleMap);
+        SupportMapFragment mSupportMapFragment = (SupportMapFragment) fragmentManager.findFragmentById(R.id.googleMap);
         if (mSupportMapFragment != null) {
             mSupportMapFragment.getMapAsync(this);
         }
@@ -117,15 +120,13 @@ public class VenueMapFragment extends Fragment implements OnMapReadyCallback, Go
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
+        mGoogleMap = googleMap;
         markVenueLocationsOnMap();
     }
 
     private void markVenueLocationsOnMap() {
-        if (mMap == null) {
-            return;
-        }
-        mMap.setOnMarkerClickListener(this);
+        assert mGoogleMap != null;
+        mGoogleMap.setOnMarkerClickListener(this);
         MarkerOptions markerOptions;
         LatLng latLng;
         if (mVenueList != null && mVenueList.size() > 0) {
@@ -134,24 +135,22 @@ public class VenueMapFragment extends Fragment implements OnMapReadyCallback, Go
                 markerOptions = new MarkerOptions().position(latLng);
                 markerOptions.title(venue.getName());
                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_pin));
-                mMap.addMarker(markerOptions);
+                mGoogleMap.addMarker(markerOptions);
             }
         }
         latLng = new LatLng(Float.valueOf(getString(R.string.centre_of_seattle_latitude)), Float.valueOf(getString(R.string.centre_of_seattle_longitude)));
         CameraPosition cameraPosition = new CameraPosition.Builder().target(latLng)
                 .zoom(MAP_ZOOM_LEVEL).bearing(0).tilt(0).build();
-        if (mMap != null) {
-            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-        }
-        mMap.setOnInfoWindowClickListener(this);
+        mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        mGoogleMap.setOnInfoWindowClickListener(this);
     }
 
     @Override
     public boolean onMarkerClick(Marker marker) {
         CameraPosition cameraPosition = new CameraPosition.Builder().target(marker.getPosition())
                 .zoom(MAP_ZOOM_LEVEL).bearing(0).tilt(0).build();
-        if (mMap != null) {
-            mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        if (mGoogleMap != null) {
+            mGoogleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         }
         marker.showInfoWindow();
         return true;
@@ -162,6 +161,8 @@ public class VenueMapFragment extends Fragment implements OnMapReadyCallback, Go
         if (mVenueList == null) {
             return;
         }
+
+        //Find Venue from list using marker position.
         for (Venue venue : mVenueList) {
             if (venue.getLocation().getLat() == marker.getPosition().latitude &&
                     venue.getLocation().getLng() == marker.getPosition().longitude) {

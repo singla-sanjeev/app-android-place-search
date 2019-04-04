@@ -41,27 +41,31 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
 /**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * to handle interaction events.
- * Use the {@link VenueDetailFragment#newInstance} factory method to
- * create an instance of this fragment.
+ * {@link VenueDetailFragment} class display venue details for a place using a collapsible
+ * toolbar layout to show a map in the upper half of the screen, with two pins -- one,
+ * the location of search result, and the other, the center of Seattle.
+ * The bottom half of the details screen is providing details about the place,
+ * including whether or not the place is favorited, and include a link to
+ * the place&rsquo;s website (if it exists). Clicking this link open an external browser installed
+ * on the device..
+ * Main Activity is containing this fragment and implementing
+ * {@link VenueDetailFragment.OnFragmentInteractionListener} to handle interaction events.
+ * {@link VenueDetailFragment#newInstance} factory method can be used to create an
+ * instance of this fragment.
  */
 public class VenueDetailFragment extends Fragment implements OnMapReadyCallback {
-    public static final int MAP_ZOOM_LEVEL = 14; //8 Venues
     private static final String TAG = LogUtils.makeLogTag(VenueDetailFragment.class);
+    private static final int MAP_ZOOM_LEVEL = 14; //8 Venues
     private Activity mActivity;
     private View mView;
-    private GoogleMap mMap;
+    private GoogleMap mGoogleMap;
     private Venue mVenue;
     private VenueListViewModel mVenueListViewModel;
     private FragmentVenueDetailBinding mFragmentVenueDetailBinding;
     private FloatingActionButton mFavoriteFloatingActionButton;
-    private Toolbar mToolbar;
     private OnFragmentInteractionListener mListener;
 
     public VenueDetailFragment() {
@@ -75,8 +79,7 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
      * @return A new instance of fragment VenueDetailFragment.
      */
     public static VenueDetailFragment newInstance() {
-        VenueDetailFragment fragment = new VenueDetailFragment();
-        return fragment;
+        return new VenueDetailFragment();
     }
 
     @Override
@@ -91,23 +94,19 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
                 R.layout.fragment_venue_detail, container, false);
         mView = mFragmentVenueDetailBinding.getRoot();
 
-        mToolbar = mView.findViewById(R.id.detailToolbar);
+        Toolbar mToolbar = mView.findViewById(R.id.detailToolbar);
         ((AppCompatActivity) mActivity).setSupportActionBar(mToolbar);
         // Show the Up button in the action bar.
         ActionBar actionBar = ((AppCompatActivity) mActivity).getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
-        ViewModelFactory mViewModelFactory = Injection.provideViewModelFactory(mActivity);
+        ViewModelFactory mViewModelFactory = Injection.provideViewModelFactory();
         mVenueListViewModel = ViewModelProviders.of((MainActivity) mActivity, mViewModelFactory).get(VenueListViewModel.class);
-        mVenueListViewModel.getSelectedVenue().observe(this, new Observer<Venue>() {
-            @Override
-            public void onChanged(Venue venue) {
-                mVenue = venue;
-                initViews();
-            }
+        mVenueListViewModel.getSelectedVenue().observe(this, venue -> {
+            mVenue = venue;
+            initViews();
         });
-
 
         //capture the size of the devices screen
         if (mActivity != null) {
@@ -191,14 +190,12 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
+        mGoogleMap = googleMap;
         markVenueLocationsOnMap();
     }
 
     private void markVenueLocationsOnMap() {
-        if (mMap == null) {
-            return;
-        }
+        assert mGoogleMap != null;
         MarkerOptions markerOptions = null;
         LatLng latLng = null;
         if (mVenue != null) {
@@ -209,21 +206,18 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
         }
         if (markerOptions != null) {
             markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_pin));
-            mMap.addMarker(markerOptions);
+            mGoogleMap.addMarker(markerOptions);
         }
 
         latLng = new LatLng(Float.valueOf(getString(R.string.centre_of_seattle_latitude)),
                 Float.valueOf(getString(R.string.centre_of_seattle_longitude)));
         markerOptions = new MarkerOptions().position(latLng);
         markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_pin));
-        mMap.addMarker(markerOptions);
-
+        mGoogleMap.addMarker(markerOptions);
 
         CameraPosition cameraPosition = new CameraPosition.Builder().target(latLng)
                 .zoom(MAP_ZOOM_LEVEL).bearing(0).tilt(0).build();
-        if (mMap != null) {
-            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-        }
+        mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
 
     private void favoriteClicked() {

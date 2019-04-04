@@ -23,7 +23,8 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProviders;
 
-public class MainActivity extends AppCompatActivity implements VenueListFragment.OnFragmentInteractionListener,
+public class MainActivity extends AppCompatActivity implements
+        VenueListFragment.OnFragmentInteractionListener,
         VenueMapFragment.OnFragmentInteractionListener,
         VenueDetailFragment.OnFragmentInteractionListener {
     private static final String TAG = LogUtils.makeLogTag(MainActivity.class);
@@ -40,12 +41,16 @@ public class MainActivity extends AppCompatActivity implements VenueListFragment
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ViewModelFactory mViewModelFactory = Injection.provideViewModelFactory(this);
-        mVenueListViewModel = ViewModelProviders.of(this, mViewModelFactory).get(VenueListViewModel.class);
+        //View Model Factory object using injection
+        ViewModelFactory mViewModelFactory = Injection.provideViewModelFactory();
+        //Initialise view model using View Model provider
+        mVenueListViewModel = ViewModelProviders.of(this, mViewModelFactory)
+                .get(VenueListViewModel.class);
+        //Initialise Venue list Mutable live data object without making http call.
         mVenueListViewModel.init(null);
-        mVenueListViewModel.getVenueList().observe(this, venueList -> {
-            LogUtils.info(TAG, "Venue List Observer");
-        });
+        // Create observer for venue list mutable live data object changes.
+        mVenueListViewModel.getVenueList().observe(this,
+                venueList -> LogUtils.info(TAG, "Venue List Observer"));
         loadVenueListFragment();
     }
 
@@ -80,25 +85,28 @@ public class MainActivity extends AppCompatActivity implements VenueListFragment
             super.onBackPressed();
             finish();
         }
-
     }
 
+    //Load Venue search result list fragment
+    private void loadVenueListFragment() {
+        mVenueListFragment = VenueListFragment.newInstance();
+        loadFragment(mVenueListFragment, TAG_LIST);
+    }
+
+    //Load Venue map fragment
     private void loadVenueMapFragment() {
         hideKeyboard();
         VenueMapFragment venueMapFragment = VenueMapFragment.newInstance();
         loadFragment(venueMapFragment, TAG_MAP);
     }
 
-    private void loadVenueListFragment() {
-        mVenueListFragment = VenueListFragment.newInstance();
-        loadFragment(mVenueListFragment, TAG_LIST);
-    }
-
+    //Load venue detail fragment
     private void loadVenueDetailFragment() {
         VenueDetailFragment venueDetailFragment = VenueDetailFragment.newInstance();
         loadFragment(venueDetailFragment, TAG_DETAIL);
     }
 
+    //Load a fragment
     private void loadFragment(Fragment fragment, String tag) {
         // create a FragmentManager
         FragmentManager supportFragmentManager = getSupportFragmentManager();
@@ -110,11 +118,14 @@ public class MainActivity extends AppCompatActivity implements VenueListFragment
         fragmentTransaction.commit(); // save the changes
     }
 
+    //Hide soft key pad
     private void hideKeyboard() {
-        InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
+        InputMethodManager inputMethodManager =
+                (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
         //Find the currently focused view, so we can grab the correct window token from it.
         View view = getCurrentFocus();
-        //If no view currently has focus, create a new one, just so we can grab a window token from it
+        //If no view currently has focus, create a new one, just so we can grab a
+        // window token from it
         if (view == null) {
             view = new View(this);
         }
@@ -137,12 +148,15 @@ public class MainActivity extends AppCompatActivity implements VenueListFragment
 
     @Override
     public void afterSearchTextChanged(String query) {
+        //Update View model live data object with search result using backend API response in
+        //repository and notify to all registered observer.
         if (!TextUtils.isEmpty(query) && query.length() >= 2) {
             sHandler = new Handler();
             sRunnable = () -> {
                 if (isInternetAvailable(MainActivity.this)) {
-                    mVenueListViewModel.init(query.toString());
+                    mVenueListViewModel.init(query);
                 } else {
+                    //Todo: network error dialog.
                     LogUtils.info(TAG, "Looks like your internet connection is taking a nap!");
                 }
             };
@@ -168,6 +182,12 @@ public class MainActivity extends AppCompatActivity implements VenueListFragment
         }
     }
 
+    /**
+     * Check availability of internet connection for making any http call.
+     *
+     * @param context : Activity/Application context
+     * @return : true or false based on internet connection availability
+     */
     private boolean isInternetAvailable(Context context) {
         if (context == null) {
             return false;

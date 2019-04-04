@@ -33,11 +33,11 @@ public class LogUtils {
         return makeLogTag(cls.getSimpleName());
     }
 
-    public static final String getMethodName() {
+    public static String getMethodName() {
         return new Exception().getStackTrace()[1].getMethodName();
     }
 
-    public static final String getClassName() {
+    public static String getClassName() {
         return new Exception().getStackTrace()[1].getClassName();
     }
 
@@ -69,11 +69,10 @@ public class LogUtils {
 
     }
 
-    public static final void trace(String tag, String message) {
+    public static void trace(String tag, String message) {
         if (ENABLE_LOG) {
             outLog(LogLevel.LOG_LEVEL_DEBUG, tag, message);
         }
-
     }
 
     /**
@@ -81,7 +80,7 @@ public class LogUtils {
      * <p/>
      * use at starting of method to mark initial point.
      */
-    public static final void enter(String tag, String message) {
+    public static void enter(String tag, String message) {
         if (ENABLE_LOG) {
             outLog(LogLevel.LOG_LEVEL_DEBUG, tag, message + ENTER_TAG);
         }
@@ -92,31 +91,31 @@ public class LogUtils {
      * <p/>
      * use at ending of method to mark exit point.
      */
-    public static final void exit(String tag, String message) {
+    public static void exit(String tag, String message) {
         if (ENABLE_LOG) {
             outLog(LogLevel.LOG_LEVEL_DEBUG, tag, message + EXIT_TAG);
         }
     }
 
-    public static final void checkIf(String tag, String message) {
+    public static void checkIf(String tag, String message) {
         if (ENABLE_LOG) {
             outLog(LogLevel.LOG_LEVEL_DEBUG, tag, message);
         }
     }
 
-    public static final void checkIf(final String tag, String message, Throwable cause) {
+    public static void checkIf(final String tag, String message, Throwable cause) {
         if (ENABLE_LOG) {
             Log.d(tag, message, cause);
         }
     }
 
-    public static final void checkAll(final String tag, String message) {
+    public static void checkAll(final String tag, String message) {
         if (ENABLE_LOG) {
             outLog(LogLevel.LOG_LEVEL_VERBOSE, tag, message);
         }
     }
 
-    public static final void checkAll(final String tag, String message, Throwable cause) {
+    public static void checkAll(final String tag, String message, Throwable cause) {
         if (ENABLE_LOG) {
             Log.v(tag, message, cause);
         }
@@ -125,7 +124,7 @@ public class LogUtils {
     /**
      * for display information . working same as Log.i(tag,message)
      */
-    public static final void info(String tag, String message) {
+    public static void info(String tag, String message) {
         if (ENABLE_LOG) {
             outLog(LogLevel.LOG_LEVEL_INFO, tag, message);
         }
@@ -134,7 +133,7 @@ public class LogUtils {
     /**
      * for display warning. working same as Log.d(tag,message)
      */
-    public static final void warning(String tag, String message) {
+    public static void warning(String tag, String message) {
         if (ENABLE_LOG) {
             outLog(LogLevel.LOG_LEVEL_WARNING, tag, message);
         }
@@ -143,7 +142,7 @@ public class LogUtils {
     /**
      * for display error. working same as Log.e(tag,message)
      */
-    public static final void error(String tag, String message) {
+    public static void error(String tag, String message) {
         if (ENABLE_LOG) {
             outLog(LogLevel.LOG_LEVEL_ERROR, tag, message);
         }
@@ -153,7 +152,7 @@ public class LogUtils {
      * for display error. working same as Log.e(tag,message). Added print stack track and Crashlytics
      * caught exception logging
      */
-    public static final void error(String tag, String message, Throwable cause) {
+    public static void error(String tag, String message, Throwable cause) {
         error(tag, message);
     }
 
@@ -161,7 +160,7 @@ public class LogUtils {
      * for display error. Added print stack track and Crashlytics caught exception
      * logging
      */
-    public static final void error(String tag, Throwable cause) {
+    public static void error(String tag, Throwable cause) {
         error(tag, cause.toString());
     }
 

@@ -41,7 +41,8 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater layoutInflater = LayoutInflater.from(mContext);
-        VenueListContentBinding venueListContentBinding = VenueListContentBinding.inflate(layoutInflater, parent, false);
+        VenueListContentBinding venueListContentBinding =
+                VenueListContentBinding.inflate(layoutInflater, parent, false);
         return new ViewHolder(venueListContentBinding);
     }
 

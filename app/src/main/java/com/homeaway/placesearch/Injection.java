@@ -1,7 +1,5 @@
 package com.homeaway.placesearch;
 
-import android.content.Context;
-
 import com.homeaway.placesearch.utils.RetrofitUtils;
 
 
@@ -10,12 +8,12 @@ import com.homeaway.placesearch.utils.RetrofitUtils;
  */
 public class Injection {
 
-    public static WebService provideWebService(Context context) {
-        return RetrofitUtils.getInstance().getService(context);
+    public static WebService provideWebService() {
+        return RetrofitUtils.getInstance().getService();
     }
 
-    public static ViewModelFactory provideViewModelFactory(Context context) {
-        WebService webService = provideWebService(context);
+    public static ViewModelFactory provideViewModelFactory() {
+        WebService webService = provideWebService();
         return new ViewModelFactory(webService);
     }
 }

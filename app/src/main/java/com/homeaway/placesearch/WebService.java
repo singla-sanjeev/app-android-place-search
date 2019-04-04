@@ -8,7 +8,6 @@ import retrofit2.http.Query;
 
 public interface WebService {
 
-
     /**
      * API to fetch venue using FourSquare APIs
      */
