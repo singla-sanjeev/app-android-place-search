@@ -10,11 +10,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.homeaway.placesearch.Injection;
 import com.homeaway.placesearch.R;
 import com.homeaway.placesearch.VenueListViewModel;
-import com.homeaway.placesearch.ViewModelFactory;
 import com.homeaway.placesearch.adapter.VenueAdapter;
 import com.homeaway.placesearch.model.Venue;
 import com.homeaway.placesearch.utils.LogUtils;
@@ -24,12 +28,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProviders;
-import androidx.recyclerview.widget.RecyclerView;
 
 /**
  * {@link VenueListFragment} class provides list of venue list item based on searching criteria.
@@ -57,6 +55,7 @@ public class VenueListFragment extends Fragment implements TextWatcher {
     private Activity mActivity;
     private OnFragmentInteractionListener mListener;
     private FloatingActionButton mFloatingActionButton;
+    private VenueListViewModel mVenueListViewModel;
 
     public static VenueListFragment newInstance() {
         return new VenueListFragment();
@@ -92,19 +91,6 @@ public class VenueListFragment extends Fragment implements TextWatcher {
 
         EditText edtTxtVw = rootView.findViewById(R.id.searchPlaceEdtVw);
         edtTxtVw.addTextChangedListener(this);
-        ViewModelFactory mViewModelFactory = Injection.provideViewModelFactory();
-        VenueListViewModel venueListViewModel = ViewModelProviders.of((MainActivity) mActivity,
-                mViewModelFactory).get(VenueListViewModel.class);
-        venueListViewModel.getVenueList().observe(this, venues -> {
-            if (null != venues && venues.size() > 0) {
-                mVenueList.clear();
-                mVenueList.addAll(venues);
-                mAdapter.notifyDataSetChanged();
-                if (mFloatingActionButton != null) {
-                    mFloatingActionButton.show();
-                }
-            }
-        });
 
         RecyclerView recyclerView = rootView.findViewById(R.id.venueListRecyclerVw);
         mAdapter = new VenueAdapter(mActivity, mVenueList, mFavoriteMap, mListener);
@@ -115,6 +101,18 @@ public class VenueListFragment extends Fragment implements TextWatcher {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
+        mVenueListViewModel = ViewModelProviders.of((MainActivity) mActivity).get(VenueListViewModel.class);
+        mVenueListViewModel.getVenueList().observe(getViewLifecycleOwner(), venues -> {
+            if (null != venues && venues.size() > 0) {
+                mVenueList.clear();
+                mVenueList.addAll(venues);
+                mAdapter.notifyDataSetChanged();
+                if (mFloatingActionButton != null) {
+                    mFloatingActionButton.show();
+                }
+            }
+        });
     }
 
     @Override

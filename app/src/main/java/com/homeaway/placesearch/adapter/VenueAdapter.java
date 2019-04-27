@@ -5,6 +5,9 @@ import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.homeaway.placesearch.R;
 import com.homeaway.placesearch.databinding.VenueListContentBinding;
 import com.homeaway.placesearch.model.Venue;
@@ -14,9 +17,6 @@ import com.homeaway.placesearch.utils.LogUtils;
 
 import java.util.List;
 import java.util.Map;
-
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 
 public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> {
     private static final String TAG = LogUtils.makeLogTag(VenueAdapter.class);

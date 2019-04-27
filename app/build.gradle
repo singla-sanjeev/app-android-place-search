@@ -32,13 +32,13 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.0.0-beta01'
     implementation 'com.google.android.gms:play-services-maps:16.1.0'
 
-    api('com.squareup.retrofit2:retrofit:2.1.0') {
+    api('com.squareup.retrofit2:retrofit:2.5.0') {
         // exclude Retrofit’s OkHttp peer-dependency module and define your own module import
         exclude module: 'okhttp'
     }
-    api 'com.squareup.okhttp3:okhttp:3.12.1'
+    api 'com.squareup.okhttp3:okhttp:3.14.1'
     api 'com.squareup.okhttp3:logging-interceptor:3.4.1'
-    api 'com.squareup.okio:okio:1.15.0'
+    api 'com.squareup.okio:okio:1.17.2'
     api 'com.squareup.retrofit2:converter-gson:2.4.0'
     api 'com.jakewharton.picasso:picasso2-okhttp3-downloader:1.0.2'
     api 'com.squareup.picasso:picasso:2.5.2'

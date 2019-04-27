@@ -7,6 +7,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.ViewModelProviders;
+
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -16,20 +22,12 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.homeaway.placesearch.Injection;
 import com.homeaway.placesearch.R;
 import com.homeaway.placesearch.VenueListViewModel;
-import com.homeaway.placesearch.ViewModelFactory;
 import com.homeaway.placesearch.model.Venue;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
 
 /**
  * {@link VenueMapFragment} class launch a full screen Google map screen with a pin
@@ -78,17 +76,6 @@ public class VenueMapFragment extends Fragment implements
         // Inflate the layout for this fragment
         View mView = inflater.inflate(R.layout.fragment_venue_map, container, false);
 
-        ViewModelFactory mViewModelFactory = Injection.provideViewModelFactory();
-        mVenueListViewModel = ViewModelProviders.of((MainActivity) mActivity, mViewModelFactory).get(VenueListViewModel.class);
-        mVenueListViewModel.getVenueList().observe(this, new Observer<List<Venue>>() {
-            @Override
-            public void onChanged(List<Venue> venues) {
-                if (null != venues && venues.size() > 0) {
-                    mVenueList.clear();
-                    mVenueList.addAll(venues);
-                }
-            }
-        });
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         ViewGroup rootViewGroup = mView.findViewById(R.id.mapVwFrmLyt);
         rootViewGroup.requestTransparentRegion(rootViewGroup);
@@ -98,6 +85,18 @@ public class VenueMapFragment extends Fragment implements
             mSupportMapFragment.getMapAsync(this);
         }
         return mView;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        mVenueListViewModel = ViewModelProviders.of((MainActivity) mActivity).get(VenueListViewModel.class);
+        mVenueListViewModel.getVenueList().observe(getViewLifecycleOwner(), venues -> {
+            if (null != venues && venues.size() > 0) {
+                mVenueList.clear();
+                mVenueList.addAll(venues);
+            }
+        });
     }
 
     @Override

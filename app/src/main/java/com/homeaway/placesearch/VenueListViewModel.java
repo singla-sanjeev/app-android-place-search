@@ -1,20 +1,20 @@
 package com.homeaway.placesearch;
 
-import com.homeaway.placesearch.model.Venue;
-
-import java.util.List;
-
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.homeaway.placesearch.model.Venue;
+
+import java.util.List;
+
 public class VenueListViewModel extends ViewModel {
     private MutableLiveData<List<Venue>> mVenueList;
-    private MutableLiveData<Venue> mVenue = new MutableLiveData<>();
+    private MutableLiveData<Venue> mVenue;
     private PlaceSearchRepository mPlaceSearchRepository;
 
-    public VenueListViewModel(WebService webService) {
-        this.mPlaceSearchRepository = new PlaceSearchRepository(webService);
+    public VenueListViewModel() {
+        this.mPlaceSearchRepository = PlaceSearchRepository.getInstance();
     }
 
     public void init(String query) {
@@ -30,6 +30,9 @@ public class VenueListViewModel extends ViewModel {
     }
 
     public void setSelectedVenue(Venue venue) {
-        mVenue.setValue(venue);
+        mVenue = mPlaceSearchRepository.venueDetail(venue.getId());
+        if (mVenue != null) {
+            mVenue.setValue(venue);
+        }
     }
 }

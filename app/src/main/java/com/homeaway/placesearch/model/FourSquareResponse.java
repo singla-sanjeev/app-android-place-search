@@ -3,7 +3,7 @@ package com.homeaway.placesearch.model;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class VenueSearchResponse {
+public class FourSquareResponse {
 
     @SerializedName("meta")
     @Expose

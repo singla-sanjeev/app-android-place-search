@@ -10,18 +10,16 @@ import android.text.TextUtils;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
-import com.homeaway.placesearch.Injection;
-import com.homeaway.placesearch.R;
-import com.homeaway.placesearch.VenueListViewModel;
-import com.homeaway.placesearch.ViewModelFactory;
-import com.homeaway.placesearch.model.Venue;
-import com.homeaway.placesearch.utils.LogUtils;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProviders;
+
+import com.homeaway.placesearch.R;
+import com.homeaway.placesearch.VenueListViewModel;
+import com.homeaway.placesearch.model.Venue;
+import com.homeaway.placesearch.utils.LogUtils;
 
 public class MainActivity extends AppCompatActivity implements
         VenueListFragment.OnFragmentInteractionListener,
@@ -41,16 +39,11 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //View Model Factory object using injection
-        ViewModelFactory mViewModelFactory = Injection.provideViewModelFactory();
         //Initialise view model using View Model provider
-        mVenueListViewModel = ViewModelProviders.of(this, mViewModelFactory)
+        mVenueListViewModel = ViewModelProviders.of(this)
                 .get(VenueListViewModel.class);
         //Initialise Venue list Mutable live data object without making http call.
         mVenueListViewModel.init(null);
-        // Create observer for venue list mutable live data object changes.
-        mVenueListViewModel.getVenueList().observe(this,
-                venueList -> LogUtils.info(TAG, "Venue List Observer"));
         loadVenueListFragment();
     }
 

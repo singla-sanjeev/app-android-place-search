@@ -6,13 +6,20 @@ import com.google.gson.annotations.SerializedName;
 import java.util.List;
 
 public class Response {
-
+    @SerializedName("venue")
+    @Expose
+    private Venue venue;
     @SerializedName("venues")
     @Expose
     private List<Venue> venues = null;
-    @SerializedName("geocode")
-    @Expose
-    private Geocode geocode;
+
+    public Venue getVenue() {
+        return venue;
+    }
+
+    public void setVenue(Venue venue) {
+        this.venue = venue;
+    }
 
     public List<Venue> getVenues() {
         return venues;
@@ -20,14 +27,6 @@ public class Response {
 
     public void setVenues(List<Venue> venues) {
         this.venues = venues;
-    }
-
-    public Geocode getGeocode() {
-        return geocode;
-    }
-
-    public void setGeocode(Geocode geocode) {
-        this.geocode = geocode;
     }
 
 }

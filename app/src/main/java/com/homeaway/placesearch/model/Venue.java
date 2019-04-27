@@ -18,19 +18,11 @@ public class Venue {
     private Location location;
     @SerializedName("categories")
     @Expose
-    private List<Category> categories = null;
-    @SerializedName("referralId")
-    @Expose
-    private String referralId;
-    @SerializedName("hasPerk")
-    @Expose
-    private boolean hasPerk;
-    @SerializedName("venuePage")
-    @Expose
-    private VenuePage venuePage;
+    private List<Category> categories;
     @SerializedName("url")
     @Expose
     private String url;
+
     private boolean favorite;
 
     public String getId() {
@@ -63,30 +55,6 @@ public class Venue {
 
     public void setCategories(List<Category> categories) {
         this.categories = categories;
-    }
-
-    public String getReferralId() {
-        return referralId;
-    }
-
-    public void setReferralId(String referralId) {
-        this.referralId = referralId;
-    }
-
-    public boolean isHasPerk() {
-        return hasPerk;
-    }
-
-    public void setHasPerk(boolean hasPerk) {
-        this.hasPerk = hasPerk;
-    }
-
-    public VenuePage getVenuePage() {
-        return venuePage;
-    }
-
-    public void setVenuePage(VenuePage venuePage) {
-        this.venuePage = venuePage;
     }
 
     public String getUrl() {

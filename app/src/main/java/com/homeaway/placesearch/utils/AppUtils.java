@@ -34,7 +34,7 @@ public class AppUtils {
     }
 
     public String getDistance(double centerOfSeattleLatitude, double centerOfSeattleLongitude, double latitude, double longitude) {
-        float distance[] = new float[3];
+        float[] distance = new float[3];
         Location.distanceBetween(centerOfSeattleLatitude, centerOfSeattleLongitude, latitude, longitude, distance);  //in meters
         float distanceInMiles = (float) (distance[0] * 0.00062137);
         return String.format(Locale.getDefault(), "%.2f Miles", distanceInMiles);

@@ -11,6 +11,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.databinding.DataBindingUtil;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.ViewModelProviders;
+
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -21,10 +32,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.homeaway.placesearch.Injection;
 import com.homeaway.placesearch.R;
 import com.homeaway.placesearch.VenueListViewModel;
-import com.homeaway.placesearch.ViewModelFactory;
 import com.homeaway.placesearch.databinding.FragmentVenueDetailBinding;
 import com.homeaway.placesearch.model.Venue;
 import com.homeaway.placesearch.utils.AppUtils;
@@ -32,16 +41,6 @@ import com.homeaway.placesearch.utils.LogUtils;
 
 import java.util.ArrayList;
 import java.util.Locale;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.databinding.DataBindingUtil;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.lifecycle.ViewModelProviders;
 
 /**
  * {@link VenueDetailFragment} class display venue details for a place using a collapsible
@@ -101,11 +100,8 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
-        ViewModelFactory mViewModelFactory = Injection.provideViewModelFactory();
-        mVenueListViewModel = ViewModelProviders.of((MainActivity) mActivity, mViewModelFactory).get(VenueListViewModel.class);
-        mVenueListViewModel.getSelectedVenue().observe(this, venue -> {
-            mVenue = venue;
-            initViews();
+        mToolbar.setNavigationOnClickListener(view -> {
+            mActivity.onBackPressed();
         });
 
         //capture the size of the devices screen
@@ -131,6 +127,19 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
         return mView;
     }
 
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        mVenueListViewModel = ViewModelProviders.of((MainActivity) mActivity).get(VenueListViewModel.class);
+        mVenueListViewModel.getSelectedVenue().observe(getViewLifecycleOwner(), venue -> {
+            if (venue != null) {
+                mVenue = venue;
+            }
+            initViews();
+        });
+    }
+
     private void initViews() {
         if (mVenue != null) {
             mFavoriteFloatingActionButton = mView.findViewById(R.id.favoriteFab);
@@ -145,9 +154,11 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
             if (!TextUtils.isEmpty(mVenue.getName())) {
                 mFragmentVenueDetailBinding.setVenueName(mVenue.getName());
             }
+
             if (!TextUtils.isEmpty(mVenue.getUrl())) {
                 mFragmentVenueDetailBinding.setUrl(mVenue.getUrl());
             }
+
             if (mVenue.getCategories() != null && mVenue.getCategories().size() > 0) {
                 if (!TextUtils.isEmpty(mVenue.getCategories().get(0).getName())) {
                     mFragmentVenueDetailBinding.setCategoryName(mVenue.getCategories().get(0).getName());
@@ -198,7 +209,7 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
         assert mGoogleMap != null;
         MarkerOptions markerOptions = null;
         LatLng latLng = null;
-        if (mVenue != null) {
+        if (mVenue != null && mVenue.getLocation() != null) {
             latLng = new LatLng(mVenue.getLocation().getLat(), mVenue.getLocation().getLng());
         }
         if (latLng != null) {

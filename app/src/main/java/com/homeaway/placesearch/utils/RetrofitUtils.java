@@ -35,20 +35,15 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitUtils {
-    private static final String TAG = LogUtils.makeLogTag(RetrofitUtils.class);
-
     public static final long LOW_PRIORITY_TIMEOUT = 30 * 1000; // 30 Seconds
     public static final long HIGH_PRIORITY_TIMEOUT = 120 * 1000; // 120 Seconds
+    private static final String TAG = LogUtils.makeLogTag(RetrofitUtils.class);
     private static final String BASE_URL = "https://api.foursquare.com/v2/";
     private static final long MEDIUM_PRIORITY_TIMEOUT = 60 * 1000; // 60 Seconds
     private static RetrofitUtils sInstance;
     private static volatile Picasso mPicasso;
     private long mRequestTimeOut = MEDIUM_PRIORITY_TIMEOUT;
     private ResponseType mResponseType = ResponseType.RESPONSE_TYPE_GSON;
-
-    public WebService getService() {
-        return buildRetrofitAdapter(BASE_URL, getOkHttpClient()).create(WebService.class);
-    }
 
     private RetrofitUtils() {
 
@@ -59,6 +54,10 @@ public class RetrofitUtils {
             sInstance = new RetrofitUtils();
         }
         return sInstance;
+    }
+
+    public WebService getService() {
+        return buildRetrofitAdapter(BASE_URL, getOkHttpClient()).create(WebService.class);
     }
 
     public void setRequestTimeOut(long mConnectTimeOut) {
@@ -222,12 +221,12 @@ public class RetrofitUtils {
         }
 
         @Override
-        public Socket createSocket(String host, int port) throws IOException, UnknownHostException {
+        public Socket createSocket(String host, int port) throws IOException {
             return enableTLSOnSocket(internalSSLSocketFactory.createSocket(host, port));
         }
 
         @Override
-        public Socket createSocket(String host, int port, InetAddress localHost, int localPort) throws IOException, UnknownHostException {
+        public Socket createSocket(String host, int port, InetAddress localHost, int localPort) throws IOException {
             return enableTLSOnSocket(internalSSLSocketFactory.createSocket(host, port, localHost, localPort));
         }
 
