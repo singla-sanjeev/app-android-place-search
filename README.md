@@ -23,5 +23,4 @@ Notes:
 1. There are further improvement possibility in UI Screen designs.
 2. Progress bar and Animation can be added to improve User experience.
 
-Known Issue: Floating action button favorite image icon is not available after collapsing map view
-and clicking on favorite icon.
+Known Issue: 
