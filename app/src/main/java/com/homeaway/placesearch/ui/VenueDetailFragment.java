@@ -233,6 +233,7 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
 
     private void favoriteClicked() {
         if (mVenue != null) {
+            mFavoriteFloatingActionButton.hide();
             if (mVenue.isFavorite()) {
                 mVenue.setFavorite(false);
                 mFavoriteFloatingActionButton.setImageResource(R.drawable.ic_favorite_border);
@@ -240,6 +241,7 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
                 mVenue.setFavorite(true);
                 mFavoriteFloatingActionButton.setImageResource(R.drawable.ic_favorite);
             }
+            mFavoriteFloatingActionButton.show();
             mListener.onFavoriteIconClicked(mVenue.getId());
         }
     }

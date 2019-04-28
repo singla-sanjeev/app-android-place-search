@@ -3,8 +3,6 @@ package com.homeaway.placesearch.ui;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,13 +19,23 @@ import com.homeaway.placesearch.R;
 import com.homeaway.placesearch.VenueListViewModel;
 import com.homeaway.placesearch.adapter.VenueAdapter;
 import com.homeaway.placesearch.model.Venue;
+import com.homeaway.placesearch.utils.AppUtils;
 import com.homeaway.placesearch.utils.LogUtils;
 import com.homeaway.placesearch.utils.PreferenceUtils;
+import com.jakewharton.rxbinding3.widget.RxTextView;
+import com.jakewharton.rxbinding3.widget.TextViewTextChangeEvent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.observers.DisposableObserver;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * {@link VenueListFragment} class provides list of venue list item based on searching criteria.
@@ -46,7 +54,7 @@ import java.util.Set;
  * Use the {@link VenueMapFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class VenueListFragment extends Fragment implements TextWatcher {
+public class VenueListFragment extends Fragment {
     private static final String TAG = LogUtils.makeLogTag(VenueListFragment.class);
 
     private ArrayList<Venue> mVenueList = new ArrayList<>();
@@ -56,6 +64,10 @@ public class VenueListFragment extends Fragment implements TextWatcher {
     private OnFragmentInteractionListener mListener;
     private FloatingActionButton mFloatingActionButton;
     private VenueListViewModel mVenueListViewModel;
+    private EditText mSearchPlaceEdtTxt;
+    private CompositeDisposable mCompositeDisposable = new CompositeDisposable();
+    private Disposable mDisposable;
+
 
     public static VenueListFragment newInstance() {
         return new VenueListFragment();
@@ -89,8 +101,7 @@ public class VenueListFragment extends Fragment implements TextWatcher {
                 mListener.onMapFloatingActionButtonClicked());
         mFloatingActionButton.hide();
 
-        EditText edtTxtVw = rootView.findViewById(R.id.searchPlaceEdtVw);
-        edtTxtVw.addTextChangedListener(this);
+        mSearchPlaceEdtTxt = rootView.findViewById(R.id.searchPlaceEdtVw);
 
         RecyclerView recyclerView = rootView.findViewById(R.id.venueListRecyclerVw);
         mAdapter = new VenueAdapter(mActivity, mVenueList, mFavoriteMap, mListener);
@@ -101,7 +112,6 @@ public class VenueListFragment extends Fragment implements TextWatcher {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
         mVenueListViewModel = ViewModelProviders.of((MainActivity) mActivity).get(VenueListViewModel.class);
         mVenueListViewModel.getVenueList().observe(getViewLifecycleOwner(), venues -> {
             if (null != venues && venues.size() > 0) {
@@ -118,16 +128,21 @@ public class VenueListFragment extends Fragment implements TextWatcher {
     @Override
     public void onResume() {
         super.onResume();
+        mDisposable = RxTextView.textChangeEvents(mSearchPlaceEdtTxt)
+                .skipInitialValue()
+                .debounce(200, TimeUnit.MILLISECONDS)
+                .distinctUntilChanged()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(searchPlace());
+        mCompositeDisposable.add(mDisposable);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
+        mCompositeDisposable.delete(mDisposable);
+        mDisposable.dispose();
     }
 
     @Override
@@ -135,6 +150,7 @@ public class VenueListFragment extends Fragment implements TextWatcher {
         mVenueList.clear();
         mVenueList = null;
         saveFavoriteListToSharedPreference();
+        mCompositeDisposable.clear();
         super.onDestroy();
     }
 
@@ -188,38 +204,43 @@ public class VenueListFragment extends Fragment implements TextWatcher {
                 putStringSet(PreferenceUtils.FAVORITE_LIST, mFavoriteMap.keySet());
     }
 
-    @Override
-    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+    private DisposableObserver<TextViewTextChangeEvent> searchPlace() {
+        return new DisposableObserver<TextViewTextChangeEvent>() {
+            @Override
+            public void onNext(TextViewTextChangeEvent textViewTextChangeEvent) {
+                String query = textViewTextChangeEvent.getText().toString();
+                LogUtils.checkIf(TAG, "Search query: " + query);
+                if (mFloatingActionButton != null && mFloatingActionButton.isOrWillBeShown()) {
+                    mFloatingActionButton.hide();
+                }
+                if (mVenueList != null && mVenueList.size() > 0 && query.length() <= 1) {
+                    mVenueList.clear();
+                    mAdapter.notifyDataSetChanged();
+                }
+                if (AppUtils.getInstance().isInternetAvailable(mActivity)) {
+                    mVenueListViewModel.init(query);
+                } else {
+                    //Todo: network error dialog.
+                    LogUtils.info(TAG, "Looks like your internet connection is taking a nap!");
+                }
+            }
 
-    }
+            @Override
+            public void onError(Throwable e) {
+                LogUtils.error(TAG, "onError: " + e.getMessage());
+            }
 
-    @Override
-    public void onTextChanged(CharSequence s, int start, int before, int count) {
-        mListener.onSearchTextChanged();
-    }
+            @Override
+            public void onComplete() {
 
-    @Override
-    public void afterTextChanged(Editable editable) {
-        if (mFloatingActionButton != null && mFloatingActionButton.isOrWillBeShown()) {
-            mFloatingActionButton.hide();
-        }
-        if (mVenueList != null && mVenueList.size() > 0 && editable.length() <= 1) {
-            mVenueList.clear();
-            mAdapter.notifyDataSetChanged();
-        }
-        mListener.afterSearchTextChanged(editable.toString());
+            }
+        };
     }
 
     // This interface can be implemented by the Activity, parent Fragment
     public interface OnFragmentInteractionListener {
         //Venue Item Selected from the list of venue items
         void onVenueSelected(Venue venue);
-
-        //Search text change listener
-        void onSearchTextChanged();
-
-        //After search text changed listener
-        void afterSearchTextChanged(String query);
 
         //Listener for floating action button click on Venue list screen
         void onMapFloatingActionButtonClicked();
