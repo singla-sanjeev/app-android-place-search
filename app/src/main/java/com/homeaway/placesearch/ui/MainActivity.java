@@ -113,9 +113,9 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onFavoriteIconClicked(String id) {
+    public void onFavoriteIconClicked(Venue venue) {
         if (mVenueListFragment != null) {
-            mVenueListFragment.updateFavorite(id);
+            mVenueListFragment.updateFavorite(venue);
         }
     }
 }

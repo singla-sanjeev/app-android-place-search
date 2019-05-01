@@ -7,13 +7,11 @@ import android.net.NetworkInfo;
 import android.widget.ImageView;
 
 import com.homeaway.placesearch.R;
-import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import java.util.Locale;
 
 public class AppUtils {
-    private static final String TAG = LogUtils.makeLogTag(AppUtils.class);
     private static AppUtils sInstance;
 
     /**
@@ -67,17 +65,6 @@ public class AppUtils {
 
     public void loadCategoryImage(Context context, String imageUrl, ImageView imageView) {
         Picasso picasso = RetrofitUtils.getInstance().getPicassoImageDownloader(context);
-        picasso.load(imageUrl).placeholder(R.drawable.ic_category_placeholder).into(imageView, new Callback() {
-
-            @Override
-            public void onSuccess() {
-                LogUtils.checkIf(TAG, "loadCategoryImage: onSuccess");
-            }
-
-            @Override
-            public void onError() {
-                LogUtils.checkIf(TAG, "loadCategoryImage: onError");
-            }
-        });
+        picasso.load(imageUrl).placeholder(R.drawable.ic_category_placeholder).into(imageView);
     }
 }

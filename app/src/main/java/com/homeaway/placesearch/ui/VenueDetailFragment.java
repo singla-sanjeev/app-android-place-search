@@ -37,7 +37,6 @@ import com.homeaway.placesearch.R;
 import com.homeaway.placesearch.databinding.FragmentVenueDetailBinding;
 import com.homeaway.placesearch.model.Venue;
 import com.homeaway.placesearch.utils.AppUtils;
-import com.homeaway.placesearch.utils.LogUtils;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -56,7 +55,6 @@ import java.util.Locale;
  * instance of this fragment.
  */
 public class VenueDetailFragment extends Fragment implements OnMapReadyCallback {
-    private static final String TAG = LogUtils.makeLogTag(VenueDetailFragment.class);
     private static final int MAP_ZOOM_LEVEL = 14; //8 Venues
     private Activity mActivity;
     private View mView;
@@ -242,11 +240,11 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
                 mFavoriteFloatingActionButton.setImageResource(R.drawable.ic_favorite);
             }
             mFavoriteFloatingActionButton.show();
-            mListener.onFavoriteIconClicked(mVenue.getId());
+            mListener.onFavoriteIconClicked(mVenue);
         }
     }
 
     public interface OnFragmentInteractionListener {
-        void onFavoriteIconClicked(String id);
+        void onFavoriteIconClicked(Venue venue);
     }
 }

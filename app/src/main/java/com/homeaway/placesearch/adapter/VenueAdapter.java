@@ -17,13 +17,11 @@ import com.homeaway.placesearch.model.Venue;
 import com.homeaway.placesearch.ui.MainActivity;
 import com.homeaway.placesearch.ui.VenueListFragment;
 import com.homeaway.placesearch.utils.AppUtils;
-import com.homeaway.placesearch.utils.LogUtils;
 
 import java.util.List;
 import java.util.Map;
 
 public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> {
-    private static final String TAG = LogUtils.makeLogTag(VenueAdapter.class);
     private Context mContext;
     private List<Venue> mVenueList;
     private Map<String, Boolean> mFavoriteMap;

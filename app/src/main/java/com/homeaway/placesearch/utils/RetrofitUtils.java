@@ -34,11 +34,11 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitUtils {
-    public static final long LOW_PRIORITY_TIMEOUT = 30 * 1000; // 30 Seconds
-    public static final long HIGH_PRIORITY_TIMEOUT = 120 * 1000; // 120 Seconds
     private static final String TAG = LogUtils.makeLogTag(RetrofitUtils.class);
     private static final String BASE_URL = "https://api.foursquare.com/v2/";
+    public static final long LOW_PRIORITY_TIMEOUT = 30 * 1000; // 30 Seconds
     private static final long MEDIUM_PRIORITY_TIMEOUT = 60 * 1000; // 60 Seconds
+    public static final long HIGH_PRIORITY_TIMEOUT = 120 * 1000; // 120 Seconds
     private static RetrofitUtils sInstance;
     private static volatile Picasso mPicasso;
     private long mRequestTimeOut = MEDIUM_PRIORITY_TIMEOUT;

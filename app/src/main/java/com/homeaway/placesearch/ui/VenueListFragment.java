@@ -173,9 +173,10 @@ public class VenueListFragment extends Fragment {
      * Update favorite map from VenueDetailFragment using this method and notify adapter to update
      * the UI after updating favorite.
      *
-     * @param id : Venue id
+     * @param venue : Updated Favorite Venue object
      */
-    public void updateFavorite(String id) {
+    public void updateFavorite(Venue venue) {
+        String id = venue.getId();
         FavoriteVenue favoriteVenue = new FavoriteVenue();
         favoriteVenue.setId(id);
         favoriteVenue.setFavorite(true);
@@ -226,7 +227,7 @@ public class VenueListFragment extends Fragment {
 
             @Override
             public void onComplete() {
-
+                LogUtils.error(TAG, "onComplete");
             }
         };
     }
