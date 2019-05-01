@@ -15,21 +15,22 @@ import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.homeaway.placesearch.FavoriteVenueViewModel;
+import com.homeaway.placesearch.PlaceSearchViewModel;
 import com.homeaway.placesearch.R;
-import com.homeaway.placesearch.VenueListViewModel;
 import com.homeaway.placesearch.adapter.VenueAdapter;
+import com.homeaway.placesearch.database.FavoriteVenue;
 import com.homeaway.placesearch.model.Venue;
 import com.homeaway.placesearch.utils.AppUtils;
 import com.homeaway.placesearch.utils.LogUtils;
-import com.homeaway.placesearch.utils.PreferenceUtils;
 import com.jakewharton.rxbinding3.widget.RxTextView;
 import com.jakewharton.rxbinding3.widget.TextViewTextChangeEvent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
@@ -58,16 +59,16 @@ public class VenueListFragment extends Fragment {
     private static final String TAG = LogUtils.makeLogTag(VenueListFragment.class);
 
     private ArrayList<Venue> mVenueList = new ArrayList<>();
+    private Map<String, Boolean> mFavoriteMap = new HashMap<>();
     private VenueAdapter mAdapter;
-    private Map<String, Venue> mFavoriteMap;
     private Activity mActivity;
     private OnFragmentInteractionListener mListener;
     private FloatingActionButton mFloatingActionButton;
-    private VenueListViewModel mVenueListViewModel;
+    private PlaceSearchViewModel mPlaceSearchViewModel;
+    private FavoriteVenueViewModel mFavoriteVenueViewModel;
     private EditText mSearchPlaceEdtTxt;
     private CompositeDisposable mCompositeDisposable = new CompositeDisposable();
     private Disposable mDisposable;
-
 
     public static VenueListFragment newInstance() {
         return new VenueListFragment();
@@ -88,7 +89,6 @@ public class VenueListFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        retrieveFavoriteListFromSharedPreference();
     }
 
     @Override
@@ -112,14 +112,30 @@ public class VenueListFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mVenueListViewModel = ViewModelProviders.of((MainActivity) mActivity).get(VenueListViewModel.class);
-        mVenueListViewModel.getVenueList().observe(getViewLifecycleOwner(), venues -> {
+        mPlaceSearchViewModel = ViewModelProviders.of((MainActivity) mActivity).get(PlaceSearchViewModel.class);
+        mPlaceSearchViewModel.getVenueList().observe(getViewLifecycleOwner(), venues -> {
             if (null != venues && venues.size() > 0) {
                 mVenueList.clear();
                 mVenueList.addAll(venues);
-                mAdapter.notifyDataSetChanged();
+                if (mAdapter != null) {
+                    mAdapter.notifyDataSetChanged();
+                }
                 if (mFloatingActionButton != null) {
                     mFloatingActionButton.show();
+                }
+            }
+        });
+
+        mFavoriteVenueViewModel = ViewModelProviders.of((MainActivity) mActivity).get(FavoriteVenueViewModel.class);
+        mFavoriteVenueViewModel.getAllFavoriteVenues();
+        mFavoriteVenueViewModel.getFavoriteVenuesLiveData().observe(getViewLifecycleOwner(), favoriteVenues -> {
+            mFavoriteMap.clear();
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                mFavoriteMap.putAll(favoriteVenues.stream().collect(
+                        Collectors.toMap(FavoriteVenue::getId, FavoriteVenue::isFavorite)));
+            } else {
+                for (FavoriteVenue favoriteVenue : favoriteVenues) {
+                    mFavoriteMap.put(favoriteVenue.getId(), favoriteVenue.isFavorite());
                 }
             }
         });
@@ -149,7 +165,6 @@ public class VenueListFragment extends Fragment {
     public void onDestroy() {
         mVenueList.clear();
         mVenueList = null;
-        saveFavoriteListToSharedPreference();
         mCompositeDisposable.clear();
         super.onDestroy();
     }
@@ -161,47 +176,26 @@ public class VenueListFragment extends Fragment {
      * @param id : Venue id
      */
     public void updateFavorite(String id) {
+        FavoriteVenue favoriteVenue = new FavoriteVenue();
+        favoriteVenue.setId(id);
+        favoriteVenue.setFavorite(true);
         if (mFavoriteMap != null) {
             if (mFavoriteMap.containsKey(id)) {
                 mFavoriteMap.remove(id);
+                if (mFavoriteVenueViewModel != null) {
+                    mFavoriteVenueViewModel.removeFromFavorite(favoriteVenue);
+                }
             } else {
-                mFavoriteMap.put(id, null);
+                mFavoriteMap.put(id, true);
+                if (mFavoriteVenueViewModel != null) {
+                    mFavoriteVenueViewModel.addToFavorite(favoriteVenue);
+                }
             }
         }
+
         if (mAdapter != null) {
             mAdapter.notifyDataSetChanged();
         }
-    }
-
-    /**
-     * Fetch/Retrieve saved favorite items from preference and load it in favorite map
-     */
-    private void retrieveFavoriteListFromSharedPreference() {
-        mFavoriteMap = new HashMap<>();
-        Set<String> favoriteSet = null;
-        try {
-            favoriteSet = PreferenceUtils.getInstance(mActivity).
-                    getStringSet(PreferenceUtils.FAVORITE_LIST);
-        } catch (Exception e) {
-            LogUtils.error(TAG, e.toString());
-        }
-        if (favoriteSet != null && favoriteSet.size() > 0) {
-            for (String id : favoriteSet) {
-                mFavoriteMap.put(id, null);
-            }
-        }
-    }
-
-    /**
-     * Save selected favorite list item to preference
-     */
-    private void saveFavoriteListToSharedPreference() {
-        assert mFavoriteMap != null;
-        if (mFavoriteMap.size() <= 0) {
-            return;
-        }
-        PreferenceUtils.getInstance(mActivity).
-                putStringSet(PreferenceUtils.FAVORITE_LIST, mFavoriteMap.keySet());
     }
 
     private DisposableObserver<TextViewTextChangeEvent> searchPlace() {
@@ -218,7 +212,7 @@ public class VenueListFragment extends Fragment {
                     mAdapter.notifyDataSetChanged();
                 }
                 if (AppUtils.getInstance().isInternetAvailable(mActivity)) {
-                    mVenueListViewModel.init(query);
+                    mPlaceSearchViewModel.venueSearch(query);
                 } else {
                     //Todo: network error dialog.
                     LogUtils.info(TAG, "Looks like your internet connection is taking a nap!");

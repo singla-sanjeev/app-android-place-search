@@ -11,8 +11,8 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProviders;
 
+import com.homeaway.placesearch.PlaceSearchViewModel;
 import com.homeaway.placesearch.R;
-import com.homeaway.placesearch.VenueListViewModel;
 import com.homeaway.placesearch.model.Venue;
 import com.homeaway.placesearch.utils.LogUtils;
 
@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity implements
     private static final String TAG_LIST = "List_FRGMENT",
             TAG_MAP = "MAP_FRAGMENT", TAG_DETAIL = "DETAIL_FRAGMENT";
     private VenueListFragment mVenueListFragment;
-    private VenueListViewModel mVenueListViewModel;
+    private PlaceSearchViewModel mPlaceSearchViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,10 +32,10 @@ public class MainActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_main);
 
         //Initialise view model using View Model provider
-        mVenueListViewModel = ViewModelProviders.of(this)
-                .get(VenueListViewModel.class);
+        mPlaceSearchViewModel = ViewModelProviders.of(this)
+                .get(PlaceSearchViewModel.class);
         //Initialise Venue list Mutable live data object without making http call.
-        mVenueListViewModel.init(null);
+        mPlaceSearchViewModel.venueSearch(null);
         loadVenueListFragment();
     }
 
@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onVenueSelected(Venue venue) {
         hideKeyboard();
-        mVenueListViewModel.setSelectedVenue(venue);
+        mPlaceSearchViewModel.setSelectedVenue(venue);
         loadVenueDetailFragment();
     }
 
@@ -108,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onMarkerInfoWindowClicked(Venue venue) {
-        mVenueListViewModel.setSelectedVenue(venue);
+        mPlaceSearchViewModel.setSelectedVenue(venue);
         loadVenueDetailFragment();
     }
 

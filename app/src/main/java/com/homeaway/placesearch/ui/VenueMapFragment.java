@@ -22,8 +22,8 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.homeaway.placesearch.PlaceSearchViewModel;
 import com.homeaway.placesearch.R;
-import com.homeaway.placesearch.VenueListViewModel;
 import com.homeaway.placesearch.model.Venue;
 
 import java.util.ArrayList;
@@ -47,7 +47,7 @@ public class VenueMapFragment extends Fragment implements
     private Activity mActivity;
     private GoogleMap mGoogleMap;
     private List<Venue> mVenueList = new ArrayList<>();
-    private VenueListViewModel mVenueListViewModel;
+    private PlaceSearchViewModel mPlaceSearchViewModel;
 
     private OnFragmentInteractionListener mListener;
 
@@ -90,8 +90,8 @@ public class VenueMapFragment extends Fragment implements
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mVenueListViewModel = ViewModelProviders.of((MainActivity) mActivity).get(VenueListViewModel.class);
-        mVenueListViewModel.getVenueList().observe(getViewLifecycleOwner(), venues -> {
+        mPlaceSearchViewModel = ViewModelProviders.of((MainActivity) mActivity).get(PlaceSearchViewModel.class);
+        mPlaceSearchViewModel.getVenueList().observe(getViewLifecycleOwner(), venues -> {
             if (null != venues && venues.size() > 0) {
                 mVenueList.clear();
                 mVenueList.addAll(venues);

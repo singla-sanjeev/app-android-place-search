@@ -6,11 +6,15 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.homeaway.placesearch.FavoriteVenueViewModel;
 import com.homeaway.placesearch.R;
+import com.homeaway.placesearch.database.FavoriteVenue;
 import com.homeaway.placesearch.databinding.VenueListContentBinding;
 import com.homeaway.placesearch.model.Venue;
+import com.homeaway.placesearch.ui.MainActivity;
 import com.homeaway.placesearch.ui.VenueListFragment;
 import com.homeaway.placesearch.utils.AppUtils;
 import com.homeaway.placesearch.utils.LogUtils;
@@ -22,12 +26,13 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
     private static final String TAG = LogUtils.makeLogTag(VenueAdapter.class);
     private Context mContext;
     private List<Venue> mVenueList;
-    private Map<String, Venue> mFavoriteMap;
+    private Map<String, Boolean> mFavoriteMap;
     private double mCenterOfSeattleLatitude;
     private double mCenterOfSeattleLongitude;
+    private FavoriteVenueViewModel mFavoriteVenueViewModel;
     private VenueListFragment.OnFragmentInteractionListener mOnFragmentInteractionListener;
 
-    public VenueAdapter(Context context, List<Venue> venueList, Map<String, Venue> favoriteMap,
+    public VenueAdapter(Context context, List<Venue> venueList, Map<String, Boolean> favoriteMap,
                         VenueListFragment.OnFragmentInteractionListener onFragmentInteractionListener) {
         mContext = context;
         mVenueList = venueList;
@@ -35,6 +40,7 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
         mCenterOfSeattleLatitude = Double.parseDouble(mContext.getResources().getString(R.string.centre_of_seattle_latitude));
         mCenterOfSeattleLongitude = Double.parseDouble(mContext.getResources().getString(R.string.centre_of_seattle_longitude));
         mOnFragmentInteractionListener = onFragmentInteractionListener;
+        mFavoriteVenueViewModel = ViewModelProviders.of((MainActivity) context).get(FavoriteVenueViewModel.class);
     }
 
     @NonNull
@@ -97,21 +103,32 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
                 mFavoriteIcon.setImageResource(R.drawable.ic_favorite_border);
             }
             mFavoriteIcon.setOnClickListener(v -> {
+                FavoriteVenue favoriteVenue = new FavoriteVenue();
+                favoriteVenue.setId(venue.getId());
+                favoriteVenue.setFavorite(true);
                 if (venue.isFavorite()) {
                     venue.setFavorite(false);
                     if (mFavoriteMap != null) {
                         mFavoriteMap.remove(venue.getId());
                     }
                     mFavoriteIcon.setImageResource(R.drawable.ic_favorite_border);
+                    if (mFavoriteVenueViewModel != null) {
+                        mFavoriteVenueViewModel.removeFromFavorite(favoriteVenue);
+                    }
                 } else {
                     venue.setFavorite(true);
                     if (mFavoriteMap != null) {
-                        mFavoriteMap.put(venue.getId(), venue);
+                        mFavoriteMap.put(venue.getId(), true);
                     }
                     mFavoriteIcon.setImageResource(R.drawable.ic_favorite);
+                    if (mFavoriteVenueViewModel != null) {
+                        mFavoriteVenueViewModel.addToFavorite(favoriteVenue);
+                    }
                 }
             });
-            itemView.setOnClickListener(view -> mOnFragmentInteractionListener.onVenueSelected(venue));
+            itemView.setOnClickListener(view -> {
+                mOnFragmentInteractionListener.onVenueSelected(venue);
+            });
         }
     }
 }

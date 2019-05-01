@@ -1,9 +1,10 @@
-package com.homeaway.placesearch;
+package com.homeaway.placesearch.repository;
 
 import android.text.TextUtils;
 
 import androidx.lifecycle.MutableLiveData;
 
+import com.homeaway.placesearch.WebService;
 import com.homeaway.placesearch.model.FourSquareResponse;
 import com.homeaway.placesearch.model.Venue;
 import com.homeaway.placesearch.utils.LogUtils;
@@ -32,7 +33,7 @@ public class PlaceSearchRepository {
     }
 
     /**
-     * This method returns the single instance of PreferenceUtils
+     * This method returns the single instance of PlaceSearchRepository
      *
      * @return single instance of the class
      */
@@ -75,8 +76,10 @@ public class PlaceSearchRepository {
         return mVenueListMutableLiveData;
     }
 
-    public MutableLiveData<Venue> venueDetail(String venueId) {
-        mWebService.venueDetail(venueId, FOURSQUARE_CLIENT_ID, FOURSQUARE_CLIENT_SECRET,
+    public MutableLiveData<Venue> venueDetail(Venue venue) {
+        mVenueMutableLiveData.postValue(venue);
+        boolean isFavorite = venue.isFavorite();
+        mWebService.venueDetail(venue.getId(), FOURSQUARE_CLIENT_ID, FOURSQUARE_CLIENT_SECRET,
                 VERSION).enqueue(new Callback<FourSquareResponse>() {
             @Override
             public void onResponse(Call<FourSquareResponse> call, Response<FourSquareResponse> response) {
@@ -86,6 +89,7 @@ public class PlaceSearchRepository {
                             && fourSquareResponse.getMeta().getCode() == 200) {
                         if (fourSquareResponse.getResponse() != null) {
                             Venue venue = fourSquareResponse.getResponse().getVenue();
+                            venue.setFavorite(isFavorite);
                             mVenueMutableLiveData.postValue(venue);
                         }
                     }

@@ -32,8 +32,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.homeaway.placesearch.PlaceSearchViewModel;
 import com.homeaway.placesearch.R;
-import com.homeaway.placesearch.VenueListViewModel;
 import com.homeaway.placesearch.databinding.FragmentVenueDetailBinding;
 import com.homeaway.placesearch.model.Venue;
 import com.homeaway.placesearch.utils.AppUtils;
@@ -62,7 +62,7 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
     private View mView;
     private GoogleMap mGoogleMap;
     private Venue mVenue;
-    private VenueListViewModel mVenueListViewModel;
+    private PlaceSearchViewModel mPlaceSearchViewModel;
     private FragmentVenueDetailBinding mFragmentVenueDetailBinding;
     private FloatingActionButton mFavoriteFloatingActionButton;
     private OnFragmentInteractionListener mListener;
@@ -131,8 +131,8 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        mVenueListViewModel = ViewModelProviders.of((MainActivity) mActivity).get(VenueListViewModel.class);
-        mVenueListViewModel.getSelectedVenue().observe(getViewLifecycleOwner(), venue -> {
+        mPlaceSearchViewModel = ViewModelProviders.of((MainActivity) mActivity).get(PlaceSearchViewModel.class);
+        mPlaceSearchViewModel.getSelectedVenue().observe(getViewLifecycleOwner(), venue -> {
             if (venue != null) {
                 mVenue = venue;
             }

@@ -6,7 +6,7 @@ import android.util.Log;
 import com.homeaway.placesearch.BuildConfig;
 
 public class LogUtils {
-    public static final boolean ENABLE_LOG = BuildConfig.DEBUG ? true : false;
+    public static final boolean ENABLE_LOG = BuildConfig.DEBUG;
     private static final String LOG_PREFIX = "homeaway_";
     private static final int LOG_PREFIX_LENGTH = LOG_PREFIX.length();
     private static final int MAX_LOG_TAG_LENGTH = 23;
