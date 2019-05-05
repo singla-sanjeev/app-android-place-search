@@ -7,6 +7,8 @@ import androidx.test.core.app.ActivityScenario;
 import androidx.test.espresso.IdlingRegistry;
 import androidx.test.espresso.IdlingResource;
 import androidx.test.espresso.NoMatchingViewException;
+import androidx.test.espresso.UiController;
+import androidx.test.espresso.ViewAction;
 import androidx.test.espresso.ViewAssertion;
 import androidx.test.espresso.contrib.RecyclerViewActions;
 import androidx.test.espresso.matcher.ViewMatchers;
@@ -96,6 +98,18 @@ public class VenueSearchTest {
         pauseTestFor(6000);
 
         pressBack();
+    }
+
+    @Test
+    public void testListItemFavoriteIconClick() {
+        onView(withId(R.id.searchPlaceEdtVw))
+                .perform(typeText(SEARCH_QUERY), closeSoftKeyboard());
+
+        pauseTestFor(500);
+
+        onView(withId(R.id.venueListRecyclerVw)).check(new RecyclerViewItemCountAssertion(greaterThan(5))).perform(RecyclerViewActions.actionOnItemAtPosition(3, new ClickOnImageView()));
+
+        pauseTestFor(2000);
     }
 
     @Test
@@ -291,6 +305,25 @@ public class VenueSearchTest {
             assertThat(adapter.getItemCount(), matcher);
         }
 
+    }
+
+    private static class ClickOnImageView implements ViewAction {
+        ViewAction click = click();
+
+        @Override
+        public Matcher<View> getConstraints() {
+            return click.getConstraints();
+        }
+
+        @Override
+        public String getDescription() {
+            return "Click on favorite icon image view";
+        }
+
+        @Override
+        public void perform(UiController uiController, View view) {
+            click.perform(uiController, view.findViewById(R.id.favoriteIconImgVw));
+        }
     }
 
 }
