@@ -21,7 +21,7 @@
         android:orientation="horizontal">
 
         <View
-            android:id="@+id/vwVerticalDivider"
+            android:id="@+id/verticalDividerVw"
             android:layout_width="0dp"
             android:layout_height="1dp"
             android:background="@android:color/white"
@@ -30,7 +30,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/txtVwName"
+            android:id="@+id/venueNameTxtVw"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -42,11 +42,11 @@
             android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toLeftOf="@+id/imgVwFavoriteIcon"
-            app:layout_constraintTop_toBottomOf="@id/vwVerticalDivider" />
+            app:layout_constraintRight_toLeftOf="@+id/favoriteIconImgVw"
+            app:layout_constraintTop_toBottomOf="@id/verticalDividerVw" />
 
         <ImageView
-            android:id="@+id/imgVwFavoriteIcon"
+            android:id="@+id/favoriteIconImgVw"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="6dp"
@@ -58,7 +58,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
-            android:id="@+id/imgViewCategoryIcon"
+            android:id="@+id/categoryIconImgVw"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -67,10 +67,10 @@
             android:scaleType="fitXY"
             android:src="@drawable/ic_category_placeholder"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/txtVwName" />
+            app:layout_constraintTop_toBottomOf="@id/venueNameTxtVw" />
 
         <TextView
-            android:id="@+id/txtVwCategory"
+            android:id="@+id/categoryTxtVw"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
@@ -80,12 +80,12 @@
             android:text="@{categoryName}"
             android:textColor="#737373"
             android:textSize="12sp"
-            app:layout_constraintLeft_toRightOf="@+id/imgViewCategoryIcon"
-            app:layout_constraintRight_toLeftOf="@id/txtVwDistance"
-            app:layout_constraintTop_toBottomOf="@id/txtVwName" />
+            app:layout_constraintLeft_toRightOf="@+id/categoryIconImgVw"
+            app:layout_constraintRight_toLeftOf="@id/distanceTxtVw"
+            app:layout_constraintTop_toBottomOf="@id/venueNameTxtVw" />
 
         <TextView
-            android:id="@+id/txtVwDistance"
+            android:id="@+id/distanceTxtVw"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
@@ -97,16 +97,16 @@
             android:text="@{distance}"
             android:textColor="#737373"
             android:textSize="12sp"
-            app:layout_constraintLeft_toRightOf="@id/txtVwCategory"
+            app:layout_constraintLeft_toRightOf="@id/categoryTxtVw"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/txtVwName" />
+            app:layout_constraintTop_toBottomOf="@id/venueNameTxtVw" />
 
         <View
             android:layout_width="0dp"
             android:layout_height="16dp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/txtVwCategory" />
+            app:layout_constraintTop_toBottomOf="@id/categoryTxtVw" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

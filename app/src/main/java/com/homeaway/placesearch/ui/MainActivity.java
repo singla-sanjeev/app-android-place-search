@@ -5,12 +5,16 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.test.espresso.IdlingResource;
 
+import com.homeaway.placesearch.IdlingResource.VenueSearchIdlingResource;
 import com.homeaway.placesearch.PlaceSearchViewModel;
 import com.homeaway.placesearch.R;
 import com.homeaway.placesearch.model.Venue;
@@ -75,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements
         // create a FragmentTransaction to begin the transaction and replace the Fragment
         FragmentTransaction fragmentTransaction = supportFragmentManager.beginTransaction();
         // replace the FrameLayout with new Fragment
-        fragmentTransaction.replace(R.id.constraintLytFragmentContainer, fragment);
+        fragmentTransaction.add(R.id.constraintLytFragmentContainer, fragment);
         fragmentTransaction.addToBackStack(tag);
         fragmentTransaction.commit(); // save the changes
     }
@@ -92,6 +96,15 @@ public class MainActivity extends AppCompatActivity implements
             view = new View(this);
         }
         inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+
+    /**
+     * Only called from test, creates and returns a new {@link VenueSearchIdlingResource}.
+     */
+    @VisibleForTesting
+    @NonNull
+    public IdlingResource getIdlingResource() {
+        return mVenueListFragment.getIdlingResource();
     }
 
     @Override
@@ -113,9 +126,9 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onFavoriteIconClicked(Venue venue) {
+    public void onFavoriteIconClicked(String id) {
         if (mVenueListFragment != null) {
-            mVenueListFragment.updateFavorite(venue);
+            mVenueListFragment.updateFavorite(id);
         }
     }
 }

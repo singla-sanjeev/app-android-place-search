@@ -35,6 +35,7 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
         mContext = context;
         mVenueList = venueList;
         mFavoriteMap = favoriteMap;
+        //initialize centre of Seattle value latitude and longitude values
         mCenterOfSeattleLatitude = Double.parseDouble(mContext.getResources().getString(R.string.centre_of_seattle_latitude));
         mCenterOfSeattleLongitude = Double.parseDouble(mContext.getResources().getString(R.string.centre_of_seattle_longitude));
         mOnFragmentInteractionListener = onFragmentInteractionListener;
@@ -66,6 +67,7 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
+        //Usage of Data binding for venue list items mapping
         private VenueListContentBinding mVenueListContentBinding;
         private ImageView mFavoriteIcon;
         private ImageView mCategoryIcon;
@@ -73,8 +75,8 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
         ViewHolder(@NonNull VenueListContentBinding venueListContentBinding) {
             super(venueListContentBinding.getRoot());
             mVenueListContentBinding = venueListContentBinding;
-            mFavoriteIcon = itemView.findViewById(R.id.imgVwFavoriteIcon);
-            mCategoryIcon = itemView.findViewById(R.id.imgViewCategoryIcon);
+            mFavoriteIcon = itemView.findViewById(R.id.favoriteIconImgVw);
+            mCategoryIcon = itemView.findViewById(R.id.categoryIconImgVw);
         }
 
         public void bind(Venue venue) {
@@ -88,8 +90,10 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
                                 mCenterOfSeattleLongitude, venue.getLocation().getLat(), venue.getLocation().getLng())));
             }
             if (venue.getCategories() != null && venue.getCategories().size() > 0) {
+                //Categories icon url creation with prefix, resolution and suffix values.
                 String iconUrl = venue.getCategories().get(0).getIcon().getPrefix().replace("\\", "") + "bg_64" +
                         venue.getCategories().get(0).getIcon().getSuffix();
+                //Loading of category icon from cache or url using picasso async loading of image content.
                 AppUtils.getInstance().loadCategoryImage(mContext, iconUrl, mCategoryIcon);
             }
 
@@ -110,6 +114,7 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
                         mFavoriteMap.remove(venue.getId());
                     }
                     mFavoriteIcon.setImageResource(R.drawable.ic_favorite_border);
+                    //Removing favorite from persistence storage using Room database wrapper.
                     if (mFavoriteVenueViewModel != null) {
                         mFavoriteVenueViewModel.removeFromFavorite(favoriteVenue);
                     }
@@ -119,6 +124,7 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
                         mFavoriteMap.put(venue.getId(), true);
                     }
                     mFavoriteIcon.setImageResource(R.drawable.ic_favorite);
+                    //Adding favorite into persistence storage using Room database wrapper.
                     if (mFavoriteVenueViewModel != null) {
                         mFavoriteVenueViewModel.addToFavorite(favoriteVenue);
                     }

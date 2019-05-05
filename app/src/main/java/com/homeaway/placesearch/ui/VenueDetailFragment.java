@@ -155,6 +155,9 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
 
             if (!TextUtils.isEmpty(mVenue.getUrl())) {
                 mFragmentVenueDetailBinding.setUrl(mVenue.getUrl());
+                mView.findViewById(R.id.txtVwLink).setVisibility(View.VISIBLE);
+            } else {
+                mView.findViewById(R.id.txtVwLink).setVisibility(View.INVISIBLE);
             }
 
             if (mVenue.getCategories() != null && mVenue.getCategories().size() > 0) {
@@ -240,11 +243,11 @@ public class VenueDetailFragment extends Fragment implements OnMapReadyCallback 
                 mFavoriteFloatingActionButton.setImageResource(R.drawable.ic_favorite);
             }
             mFavoriteFloatingActionButton.show();
-            mListener.onFavoriteIconClicked(mVenue);
+            mListener.onFavoriteIconClicked(mVenue.getId());
         }
     }
 
     public interface OnFragmentInteractionListener {
-        void onFavoriteIconClicked(Venue venue);
+        void onFavoriteIconClicked(String id);
     }
 }

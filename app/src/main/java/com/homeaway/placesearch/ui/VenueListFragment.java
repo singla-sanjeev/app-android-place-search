@@ -10,12 +10,15 @@ import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.test.espresso.IdlingResource;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.homeaway.placesearch.FavoriteVenueViewModel;
+import com.homeaway.placesearch.IdlingResource.VenueSearchIdlingResource;
 import com.homeaway.placesearch.PlaceSearchViewModel;
 import com.homeaway.placesearch.R;
 import com.homeaway.placesearch.adapter.VenueAdapter;
@@ -68,7 +71,10 @@ public class VenueListFragment extends Fragment {
     private FavoriteVenueViewModel mFavoriteVenueViewModel;
     private EditText mSearchPlaceEdtTxt;
     private CompositeDisposable mCompositeDisposable = new CompositeDisposable();
-    private Disposable mDisposable;
+
+    // The Idling Resource which will be null in production.
+    @Nullable
+    private VenueSearchIdlingResource mVenueSearchIdlingResource;
 
     public static VenueListFragment newInstance() {
         return new VenueListFragment();
@@ -123,8 +129,20 @@ public class VenueListFragment extends Fragment {
                 if (mFloatingActionButton != null) {
                     mFloatingActionButton.show();
                 }
+                if (mVenueSearchIdlingResource != null) {
+                    mVenueSearchIdlingResource.endSearch();
+                }
             }
         });
+
+        Disposable disposable = RxTextView.textChangeEvents(mSearchPlaceEdtTxt)
+                .skipInitialValue()
+                .debounce(200, TimeUnit.MILLISECONDS)
+                .distinctUntilChanged()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(searchPlace());
+        mCompositeDisposable.add(disposable);
 
         mFavoriteVenueViewModel = ViewModelProviders.of((MainActivity) mActivity).get(FavoriteVenueViewModel.class);
         mFavoriteVenueViewModel.getAllFavoriteVenues();
@@ -142,23 +160,11 @@ public class VenueListFragment extends Fragment {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        mDisposable = RxTextView.textChangeEvents(mSearchPlaceEdtTxt)
-                .skipInitialValue()
-                .debounce(200, TimeUnit.MILLISECONDS)
-                .distinctUntilChanged()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(searchPlace());
-        mCompositeDisposable.add(mDisposable);
-    }
-
-    @Override
     public void onPause() {
         super.onPause();
-        mCompositeDisposable.delete(mDisposable);
-        mDisposable.dispose();
+        if (mSearchPlaceEdtTxt != null) {
+            mSearchPlaceEdtTxt.clearFocus();
+        }
     }
 
     @Override
@@ -173,10 +179,9 @@ public class VenueListFragment extends Fragment {
      * Update favorite map from VenueDetailFragment using this method and notify adapter to update
      * the UI after updating favorite.
      *
-     * @param venue : Updated Favorite Venue object
+     * @param id : Updated Favorite Venue id
      */
-    public void updateFavorite(Venue venue) {
-        String id = venue.getId();
+    public void updateFavorite(String id) {
         FavoriteVenue favoriteVenue = new FavoriteVenue();
         favoriteVenue.setId(id);
         favoriteVenue.setFavorite(true);
@@ -203,6 +208,9 @@ public class VenueListFragment extends Fragment {
         return new DisposableObserver<TextViewTextChangeEvent>() {
             @Override
             public void onNext(TextViewTextChangeEvent textViewTextChangeEvent) {
+                if (mVenueSearchIdlingResource != null) {
+                    mVenueSearchIdlingResource.beginSearch();
+                }
                 String query = textViewTextChangeEvent.getText().toString();
                 LogUtils.checkIf(TAG, "Search query: " + query);
                 if (mFloatingActionButton != null && mFloatingActionButton.isOrWillBeShown()) {
@@ -230,6 +238,18 @@ public class VenueListFragment extends Fragment {
                 LogUtils.error(TAG, "onComplete");
             }
         };
+    }
+
+    /**
+     * Only called from test, creates and returns a new {@link VenueSearchIdlingResource}.
+     */
+    @VisibleForTesting
+    @NonNull
+    public IdlingResource getIdlingResource() {
+        if (mVenueSearchIdlingResource == null) {
+            mVenueSearchIdlingResource = new VenueSearchIdlingResource();
+        }
+        return mVenueSearchIdlingResource;
     }
 
     // This interface can be implemented by the Activity, parent Fragment
